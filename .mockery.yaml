@@ -1,0 +1,33 @@
+resolve-type-alias: False
+issue-845-fix: True
+
+packages:
+  github.com/AmadlaOrg/LibraryUtils/file:
+    interfaces:
+      IFile:
+        config:
+          dir: "{{.InterfaceDir}}"
+          mockName: MockFile
+          inpackage: True
+  github.com/AmadlaOrg/LibraryUtils/git:
+    interfaces:
+      IGit:
+        config:
+          dir: "{{.InterfaceDir}}"
+          mockName: "MockUtilGit"
+          inpackage: True
+  github.com/AmadlaOrg/LibraryUtils/git/remote:
+    interfaces:
+      IRemote:
+        config:
+          dir: "{{.InterfaceDir}}"
+          mockName: "MockUtilGitRemote"
+          inpackage: True
+  io/fs:
+    interfaces:
+      FileInfo:
+        config:
+          dir: file
+          mockName: MockFileInfo
+          inpackage: False
+          outpkg: file
