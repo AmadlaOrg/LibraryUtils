@@ -25,7 +25,12 @@ jobs:
       # Clean cache directories before restoring cache
       - name: Clean Go Modules Directory
         run: |
-          rm -rf ~/.cache/go-build ~/go/pkg/mod
+          if [ "${{ runner.os }}" == "Windows" ]; then
+            Remove-Item -Recurse -Force $HOME\.cache\go-build, $HOME\go\pkg\mod
+          else
+            rm -rf ~/.cache/go-build ~/go/pkg/mod
+          fi
+        shell: bash
 
       # Cache Go modules to speed up builds
       - name: Cache Go Modules
