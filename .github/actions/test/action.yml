@@ -1,0 +1,34 @@
+name: 'Test Go Code'
+description: 'Runs tests'
+runs:
+  using: composite
+  steps:
+    - name: Setup go
+      uses: actions/setup-go@v5
+      with:
+        go-version-file: go.mod
+        cache-dependency-path: go.sum
+
+    - name: Install Dependencies
+      shell: bash
+      run: make install-deps
+
+    - name: Test + Coverage
+      shell: bash
+      run: |
+        make test
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-cases
+        path: |
+          .reports/*
+        include-hidden-files: true
+        if-no-files-found: error
+
+    - name: Display coverage in step summary
+      shell: bash
+      run: |
+        echo '### Coverage Report' >> $GITHUB_STEP_SUMMARY
+        cat .reports/coverage_summary.txt >> $GITHUB_STEP_SUMMARY
