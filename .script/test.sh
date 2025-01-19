@@ -12,7 +12,7 @@ rm -rf ${output_dir}
 mkdir -p ${output_dir}
 echo "" > ${report_file}
 
-echo "  >  Testing code..."
+echo "--->  Testing code..."
 
 go test -count=1 -tags=integration -coverpkg=./... -covermode=count -coverprofile ${cov_unfiltered_out_file} ./... | tee ${output_dir}/std.out
 grep -v -E -f .covignore ${cov_unfiltered_out_file} > ${cov_out_file}
