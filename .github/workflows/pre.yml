@@ -33,7 +33,12 @@ jobs:
       - name: Clean Cache on Windows
         if: runner.os == 'Windows'
         run: |
-          Remove-Item -Recurse -Force $env:USERPROFILE\.cache\go-build, $env:USERPROFILE\go\pkg\mod
+          if (Test-Path -Path "$env:USERPROFILE\.cache\go-build") {
+            Remove-Item -Recurse -Force "$env:USERPROFILE\.cache\go-build"
+          }
+          if (Test-Path -Path "$env:USERPROFILE\go\pkg\mod") {
+            Remove-Item -Recurse -Force "$env:USERPROFILE\go\pkg\mod"
+          }
         shell: pwsh
 
       # Cache Go modules to speed up builds
