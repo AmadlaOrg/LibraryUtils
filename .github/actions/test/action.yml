@@ -1,3 +1,4 @@
+---
 name: 'Test Go Code'
 description: 'Runs tests'
 runs:

@@ -1,5 +1,5 @@
+---
 name: Pre-Build Workflow
-
 on:
   push:
     branches:
@@ -7,7 +7,19 @@ on:
       - develop
 jobs:
   tests:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-22.04
+          - ubuntu-24.04
+          - windows-2019
+          - windows-2022
+          - windows-2025
+          - macos-13
+          - macos-14
+          - macos-15
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/test
+      - uses: ./.github/actions/lint
