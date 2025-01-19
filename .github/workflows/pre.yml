@@ -22,15 +22,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Clean cache directories before restoring cache
-      - name: Clean Go Modules Directory
+      # Clean cache directories on Linux/Mac
+      - name: Clean Cache on Linux/Mac
+        if: runner.os != 'Windows'
         run: |
-          if [ "${{ runner.os }}" == "Windows" ]; then
-            Remove-Item -Recurse -Force $HOME\.cache\go-build, $HOME\go\pkg\mod
-          else
-            rm -rf ~/.cache/go-build ~/go/pkg/mod
-          fi
+          rm -rf ~/.cache/go-build ~/go/pkg/mod
         shell: bash
+
+      # Clean cache directories on Windows
+      - name: Clean Cache on Windows
+        if: runner.os == 'Windows'
+        run: |
+          Remove-Item -Recurse -Force $env:USERPROFILE\.cache\go-build, $env:USERPROFILE\go\pkg\mod
+        shell: pwsh
 
       # Cache Go modules to speed up builds
       - name: Cache Go Modules
