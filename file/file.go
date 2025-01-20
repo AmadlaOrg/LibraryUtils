@@ -24,6 +24,8 @@ func Exists(path string) bool {
 }
 
 // IsFile verifies that the path points to a file and not a directory
+//
+// Validates that the file is a file, and it exists and is not a directory.
 func IsFile(path string) (bool, error) {
 	// Check if the file exists and is a regular file
 	info, err := osStat(path)
@@ -41,6 +43,18 @@ func IsFile(path string) (bool, error) {
 }
 
 // IsValidMagic validates that the magic head matches what is in a file
+//
+// This function is for quick check in file content, but it doesn't do a full validation of a file type.
+// Reduces the probability that the file is the wrong type. It also caches if the file doesn't exist or is a directory.
+//
+// -----------------------------------------------------------------------------------------------------------------
+//
+// For better MIME type check:
+// - h2non/filetype -- 🔥 Very Fast -- 🔄 Good -- ✅ Very Easy -- Great for lightweight detection; customizable.
+// - rakyll/magicmime -- ⚡ Moderate -- 🎯 Very High -- ⚠️ Requires libmagic -- Best for precise detection, same as file.
+// - gabriel-vasile/mimetype -- 🔥 Fast -- 🔄 Good to Very Good -- ✅ Very Easy -- Fully Go-based, no external dependencies.
+//
+// -----------------------------------------------------------------------------------------------------------------
 func IsValidMagic(path string, magic []byte) (bool, error) {
 	if ok, err := IsFile(path); !ok {
 		return false, err

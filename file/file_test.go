@@ -124,29 +124,46 @@ func TestIsFile(t *testing.T) {
 	}
 }
 
-// TODO: 1. Missing passing test 2. Missing test for when closing file fails
 func TestIsValidMagic(t *testing.T) {
 	tests := []struct {
-		name               string
-		inputPath          string
-		inputMagic         []byte
-		internalOsOpen     func(name string) (IFile, error)
-		internalBytesEqual func(a, b []byte) bool
-		expect             bool
-		expectedErr        error
-		hasError           bool
+		name                string
+		inputPath           string
+		inputMagic          []byte
+		internalOsStatError error
+		internalOsOpen      func(name string) (IFile, error)
+		internalBytesEqual  func(a, b []byte) bool
+		expect              bool
+		expectedErr         error
+		hasError            bool
 	}{
-		/*{
-			name:      "normal",
+		{
+			name:      "Success",
 			inputPath: `testdata/valid.db`,
-			expect:    true,
-			hasError:  false,
-		},*/
+			internalOsOpen: func(name string) (IFile, error) {
+				mockFile := NewMockFile(t)
+				mockFile.EXPECT().Read(mock.Anything).Return(0, nil)
+				mockFile.EXPECT().Close().Return(nil)
+				return mockFile, nil
+			},
+			internalBytesEqual: func(a, b []byte) bool {
+				return true
+			},
+			expect:   true,
+			hasError: false,
+		},
 		//
 		// Error
 		//
 		{
-			name:      "Error: normal",
+			name:                "Error: fails at IsFile",
+			inputPath:           `testdata/valid.db`,
+			internalOsStatError: errors.New("open ./testdata/valid.db: no such file or directory"),
+			expect:              false,
+			expectedErr:         errors.New("open ./testdata/valid.db: no such file or directory"),
+			hasError:            true,
+		},
+		{
+			name:      "Error: fails at os.Open",
 			inputPath: `testdata/valid.db`,
 			internalOsOpen: func(name string) (IFile, error) {
 				mockFile := NewMockFile(t)
@@ -157,8 +174,9 @@ func TestIsValidMagic(t *testing.T) {
 			hasError:    true,
 		},
 		{
-			name:      "Error: normal",
-			inputPath: `testdata/valid.db`,
+			name:       "Error: fails at Read file",
+			inputPath:  `testdata/valid.db`,
+			inputMagic: []byte("SQLite"),
 			internalOsOpen: func(name string) (IFile, error) {
 				mockFile := NewMockFile(t)
 				mockFile.EXPECT().Read(mock.Anything).Return(0, errors.New("some error (file.Read())"))
@@ -170,7 +188,7 @@ func TestIsValidMagic(t *testing.T) {
 			hasError:    true,
 		},
 		{
-			name:      "Error: normal",
+			name:      "Error: fails at bytes.Equal",
 			inputPath: `testdata/valid.db`,
 			internalOsOpen: func(name string) (IFile, error) {
 				mockFile := NewMockFile(t)
@@ -185,9 +203,8 @@ func TestIsValidMagic(t *testing.T) {
 			expectedErr: errors.New("does not match magic header"),
 			hasError:    true,
 		},
-		// TODO: The error is not pass to the return
-		/*{
-			name:      "Error: normal",
+		{
+			name:      "Error: fails at closing file",
 			inputPath: `testdata/valid.db`,
 			internalOsOpen: func(name string) (IFile, error) {
 				mockFile := NewMockFile(t)
@@ -198,10 +215,9 @@ func TestIsValidMagic(t *testing.T) {
 			internalBytesEqual: func(a, b []byte) bool {
 				return true
 			},
-			expect:        true,
-			expectedError: errors.New("does not match magic header"),
-			hasError:      true,
-		},*/
+			expect:   true,
+			hasError: false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -210,8 +226,10 @@ func TestIsValidMagic(t *testing.T) {
 			defer func() { osStat = originalOsStat }()
 			osStat = func(string) (os.FileInfo, error) {
 				mockFileInfo := NewMockFileInfo(t)
-				mockFileInfo.EXPECT().IsDir().Return(false)
-				return mockFileInfo, nil
+				if tt.internalOsStatError == nil {
+					mockFileInfo.EXPECT().IsDir().Return(false)
+				}
+				return mockFileInfo, tt.internalOsStatError
 			}
 
 			originalOsOpen := osOpen
