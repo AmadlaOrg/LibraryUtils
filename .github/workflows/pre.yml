@@ -24,7 +24,13 @@ jobs:
 
       # Debugging step
       - name: Pre-Cleanup Directory Listing
-        run: ls -la ~/go/pkg/mod || echo "Directory does not exist"
+        run: |
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            Get-ChildItem -Force -Recurse $env:USERPROFILE\go\pkg\mod || Write-Output "Directory does not exist"
+          else
+            ls -la ~/go/pkg/mod || echo "Directory does not exist"
+          fi
+        shell: bash
 
       # Clean cache directories on Linux/Mac
       - name: Clean Cache on Linux/Mac
