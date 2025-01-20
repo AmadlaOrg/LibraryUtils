@@ -7,4 +7,4 @@ on:
       - develop
 jobs:
   call-pre-build:
-    uses: AmadlaOrg/GitHub-Actions/.github/workflows/pre-build-template.yml@developer
+    uses: AmadlaOrg/GitHub-Actions/workflows/pre-build-template.yml@developer
