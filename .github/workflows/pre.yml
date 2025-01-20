@@ -22,13 +22,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Debugging step
-      - name: Pre-Cleanup Directory Listing
+      # Debugging step for Linux/Mac
+      - name: Pre-Cleanup Directory Listing (Linux/Mac)
+        if: runner.os != 'Windows'
         run: |
-          if ($env:OS -eq "Windows_NT") {
-            Get-ChildItem -Force -Recurse "$env:USERPROFILE\go\pkg\mod" || Write-Output "Directory does not exist"
+          ls -la ~/go/pkg/mod || echo "Directory does not exist"
+        shell: bash
+
+      # Debugging step for Windows
+      - name: Pre-Cleanup Directory Listing (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          if (Test-Path -Path "$env:USERPROFILE\go\pkg\mod") {
+            Get-ChildItem -Force -Recurse "$env:USERPROFILE\go\pkg\mod"
           } else {
-            ls -la ~/go/pkg/mod || echo "Directory does not exist"
+            Write-Output "Directory does not exist"
           }
         shell: pwsh
 
