@@ -22,15 +22,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Debugging step for Linux/Mac
-      - name: Pre-Cleanup Directory Listing (Linux/Mac)
+      # Directory Listing and Cleanup for Linux/Mac
+      - name: Directory Listing and Cleanup (Linux/Mac)
         if: runner.os != 'Windows'
         run: |
           ls -la ~/go/pkg/mod || echo "Directory does not exist"
+          rm -rf ~/.cache/go-build ~/go/pkg/mod || true
         shell: bash
 
-      # Debugging step for Windows
-      - name: Pre-Cleanup Directory Listing (Windows)
+      # Directory Listing and Cleanup for Windows
+      - name: Directory Listing and Cleanup (Windows)
         if: runner.os == 'Windows'
         run: |
           if (Test-Path -Path "$env:USERPROFILE\go\pkg\mod") {
@@ -38,19 +39,6 @@ jobs:
           } else {
             Write-Output "Directory does not exist"
           }
-        shell: pwsh
-
-      # Clean cache directories on Linux/Mac
-      - name: Clean Cache on Linux/Mac
-        if: runner.os != 'Windows'
-        run: |
-          rm -rf ~/.cache/go-build ~/go/pkg/mod
-        shell: bash
-
-      # Clean cache directories on Windows
-      - name: Clean Cache on Windows
-        if: runner.os == 'Windows'
-        run: |
           if (Test-Path -Path "$env:USERPROFILE\.cache\go-build") {
             Remove-Item -Recurse -Force "$env:USERPROFILE\.cache\go-build"
           }
@@ -69,6 +57,7 @@ jobs:
           key: go-mod-${{ matrix.os }}-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             go-mod-${{ matrix.os }}-
+            go-mod-
 
       # Run tests
       - uses: ./.github/actions/test
