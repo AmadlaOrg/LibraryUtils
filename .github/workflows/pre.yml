@@ -27,6 +27,7 @@ jobs:
         if: runner.os != 'Windows'
         run: |
           ls -la ~/go/pkg/mod || echo "Directory does not exist"
+          chmod -R 0755 ~/go/pkg/mod ~/.cache/go-build ~/.cache/golangci-lint ~/.cache/buf || true
           rm -rf ~/.cache/go-build ~/go/pkg/mod || true
         shell: bash
 
