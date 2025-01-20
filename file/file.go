@@ -47,11 +47,14 @@ func IsFile(path string) (bool, error) {
 // This function is for quick check in file content, but it doesn't do a full validation of a file type.
 // Reduces the probability that the file is the wrong type. It also caches if the file doesn't exist or is a directory.
 //
+// Performance: `file.Read()` reads only the length of the magic pass not more. So in other words not the entire file is
+// open and loaded in memory.
+//
 // -----------------------------------------------------------------------------------------------------------------
 //
 // For better MIME type check:
 // - h2non/filetype -- 🔥 Very Fast -- 🔄 Good -- ✅ Very Easy -- Great for lightweight detection; customizable.
-// - rakyll/magicmime -- ⚡ Moderate -- 🎯 Very High -- ⚠️ Requires libmagic -- Best for precise detection, same as file.
+// - rakyll/magicmime -- ⚡ Moderate -- 🎯 Very High -- ⚠️ Requires `libmagic` -- Best for precise detection, same as file.
 // - gabriel-vasile/mimetype -- 🔥 Fast -- 🔄 Good to Very Good -- ✅ Very Easy -- Fully Go-based, no external dependencies.
 //
 // -----------------------------------------------------------------------------------------------------------------

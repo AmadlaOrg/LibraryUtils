@@ -2,8 +2,10 @@ package git
 
 import (
 	"fmt"
+	"github.com/AmadlaOrg/LibraryUtils/git/remote"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"os"
 )
 
@@ -14,7 +16,11 @@ type IGit interface {
 	CheckoutTag(repoPath, tagName string) error
 }
 
-type SGit struct{}
+type SGit struct {
+	url              string
+	repositoryPath   string
+	serviceGitRemote remote.IRemote
+}
 
 var (
 	gitPlainOpen  = git.PlainOpen
@@ -28,10 +34,10 @@ func (s *SGit) FetchRepo(url, dest string) error {
 		Progress: os.Stdout,
 		// TODO: Add support for authentication because some people might require it
 		// If you need authentication, add it here
-		// Auth: &http.BasicAuth{
-		//     Username: "your-username", // yes, this can be anything except an empty string
-		//     Password: "your-token",
-		// },
+		Auth: &http.BasicAuth{
+			Username: "your-username", // yes, this can be anything except an empty string
+			Password: "your-token",
+		},
 	})
 	return err
 }

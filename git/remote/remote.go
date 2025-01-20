@@ -10,11 +10,13 @@ import (
 
 // IRemote to help with mocking
 type IRemote interface {
-	Tags(url string) ([]string, error)
-	CommitHeadHash(url string) (string, error)
+	Tags() ([]string, error)
+	CommitHeadHash() (string, error)
 }
 
-type SRemote struct{}
+type SRemote struct {
+	url string
+}
 
 var (
 	gitNewRemote     = git.NewRemote
@@ -22,10 +24,10 @@ var (
 )
 
 // Tags returns a list of tags for the repository at the specified URL.
-func (s *SRemote) Tags(url string) ([]string, error) {
+func (s *SRemote) Tags() ([]string, error) {
 	rem := gitNewRemote(memoryNewStorage(), &config.RemoteConfig{
 		Name: "origin",
-		URLs: []string{url},
+		URLs: []string{s.url},
 	})
 
 	refs, err := rem.List(&git.ListOptions{
@@ -46,10 +48,10 @@ func (s *SRemote) Tags(url string) ([]string, error) {
 }
 
 // CommitHeadHash retrieves the hash of the most recent commit
-func (s *SRemote) CommitHeadHash(url string) (string, error) {
+func (s *SRemote) CommitHeadHash() (string, error) {
 	rem := gitNewRemote(memoryNewStorage(), &config.RemoteConfig{
 		Name: "origin",
-		URLs: []string{url},
+		URLs: []string{s.url},
 	})
 
 	// List all references from the remote repository
