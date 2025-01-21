@@ -1,6 +1,7 @@
 package git
 
 import (
+	"github.com/AmadlaOrg/LibraryUtils/git/config"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/stretchr/testify/assert"
@@ -43,11 +44,10 @@ func Test_Integration_FetchRepo(t *testing.T) {
 		},
 	}
 
-	gitService := NewGitService()
-
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := gitService.FetchRepo(tt.url, tt.dest)
+			gitService := NewGitService(tt.url, tt.dest, &config.Config{})
+			err = gitService.Clone()
 			if tt.expectedErr {
 				assert.Error(t, err)
 			} else {
@@ -110,9 +110,9 @@ func Test_Integration_CommitHeadHash_RepoOpenError(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	gitService := NewGitService()
+	gitService := NewGitService("https://github.com/AmadlaOrg/QAFixturesEntityPseudoVersion", tempDir, &config.Config{})
 
-	_, err = gitService.CommitHeadHash(tempDir)
+	_, err = gitService.CommitHeadHash()
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "repository does not exist") // Customize this based on actual error message
 }
@@ -135,7 +135,7 @@ func Test_Integration_CommitHeadHash_RepoHeadError(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	gitService := NewGitService()
+	gitService := NewGitService("https://github.com/AmadlaOrg/QAFixturesEntityPseudoVersion", tempDir, &config.Config{})
 
 	// Write an invalid reference to the HEAD file
 	headFilePath := filepath.Join(tempDir, ".git", "HEAD")
@@ -144,7 +144,7 @@ func Test_Integration_CommitHeadHash_RepoHeadError(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = gitService.CommitHeadHash(tempDir)
+	_, err = gitService.CommitHeadHash()
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "reference not found") // Customize this based on actual error message
 }
@@ -172,9 +172,9 @@ func Test_Integration_CommitHeadHash_CommitObjectError(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	gitService := NewGitService()
+	gitService := NewGitService("https://github.com/AmadlaOrg/QAFixturesEntityPseudoVersion", tempDir, &config.Config{})
 
-	_, err = gitService.CommitHeadHash(tempDir)
+	_, err = gitService.CommitHeadHash()
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "object not found") // Customize this based on actual error message
 }
@@ -184,8 +184,8 @@ func Test_Integration_CheckoutTag_RepoOpenError(t *testing.T) {
 	// Use a non-existing directory to simulate repository open error
 	tempDir := "/non/existing/path"
 
-	gitService := NewGitService()
-	err := gitService.CheckoutTag(tempDir, "v1.0.0")
+	gitService := NewGitService("https://github.com/AmadlaOrg/QAFixturesEntityPseudoVersion", tempDir, &config.Config{})
+	err := gitService.CheckoutTag("v1.0.0")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "repository does not exist") // Customize based on actual error message
 }
@@ -209,8 +209,8 @@ func Test_Integration_CheckoutTag_CheckoutError(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	gitService := NewGitService()
-	err = gitService.CheckoutTag(tempDir, "non-existing-tag")
+	gitService := NewGitService("https://github.com/AmadlaOrg/QAFixturesEntityPseudoVersion", tempDir, &config.Config{})
+	err = gitService.CheckoutTag("non-existing-tag")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "reference not found") // Customize based on actual error message
 }

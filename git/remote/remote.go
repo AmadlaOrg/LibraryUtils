@@ -2,6 +2,7 @@ package remote
 
 import (
 	"fmt"
+	utilGitConfig "github.com/AmadlaOrg/LibraryUtils/git/config"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
@@ -15,7 +16,8 @@ type IRemote interface {
 }
 
 type SRemote struct {
-	url string
+	url    string
+	config *utilGitConfig.Config
 }
 
 var (
@@ -31,7 +33,12 @@ func (s *SRemote) Tags() ([]string, error) {
 	})
 
 	refs, err := rem.List(&git.ListOptions{
-		PeelingOption: git.IgnorePeeled,
+		Auth:            *s.config.Auth,
+		InsecureSkipTLS: *s.config.InsecureSkipTLS,
+		CABundle:        s.config.CABundle,
+		ProxyOptions:    s.config.ProxyOptions,
+		Timeout:         s.config.Timeout,
+		PeelingOption:   git.IgnorePeeled,
 	})
 	if err != nil {
 		return nil, err
@@ -55,7 +62,14 @@ func (s *SRemote) CommitHeadHash() (string, error) {
 	})
 
 	// List all references from the remote repository
-	refs, err := rem.List(&git.ListOptions{})
+	refs, err := rem.List(&git.ListOptions{
+		Auth:            *s.config.Auth,
+		InsecureSkipTLS: *s.config.InsecureSkipTLS,
+		CABundle:        s.config.CABundle,
+		ProxyOptions:    s.config.ProxyOptions,
+		Timeout:         s.config.Timeout,
+		PeelingOption:   git.IgnorePeeled,
+	})
 	if err != nil {
 		return "", err
 	}

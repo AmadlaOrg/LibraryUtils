@@ -1,29 +1,5 @@
 package git
 
-import (
-	"github.com/stretchr/testify/mock"
-)
-
-// MockGit is the mock implementation of IGit
-type MockGit struct {
-	mock.Mock
-}
-
-func (m *MockGit) FetchRepo(url, dest string) error {
-	args := m.Called(url, dest)
-	return args.Error(0)
-}
-
-func (m *MockGit) CommitHeadHash(repoPath string) (string, error) {
-	args := m.Called(repoPath)
-	return args.String(0), args.Error(1)
-}
-
-func (m *MockGit) CheckoutTag(repoPath, tagName string) error {
-	args := m.Called(repoPath, tagName)
-	return args.Error(0)
-}
-
 // FIXME:
 
 // Test FetchRepo

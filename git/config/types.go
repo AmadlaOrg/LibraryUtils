@@ -1,33 +1,107 @@
 package config
 
 import (
-	"github.com/ProtonMail/go-crypto/openpgp"
-	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/config"
-	"github.com/go-git/go-git/v5/plumbing"
-	formatcfg "github.com/go-git/go-git/v5/plumbing/format/config"
-	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/protocol/packp/sideband"
 	"github.com/go-git/go-git/v5/plumbing/transport"
-	"regexp"
-	"time"
 )
 
 type Config struct {
 	// Auth credentials, if required, to use with the remote repository.
-	Auth         transport.AuthMethod
-	remoteConfig Remote
+	Auth *transport.AuthMethod
+
+	// Name of the remote to be added, by default `origin`.
+	RemoteName string
+
+	// Tags describe how the tags will be fetched from the remote repository,
+	// **used to be** by default is 🚫AllTags🚫(2) --> The new default is ✅NoTags✅ (3).
+	//
+	// ⚠️ Removed ⚠️ -- Not used. It is always ✅NoTags✅ (3).
+	//
+	//Tags TagMode
+
+	// InsecureSkipTLS skips ssl verify if protocol is https
+	InsecureSkipTLS *bool
+
+	// CABundle specify additional ca bundle with system cert pool
+	CABundle []byte
+
+	// ProxyOptions provides info required for connecting to a proxy.
+	ProxyOptions transport.ProxyOptions
+
+	// Timeout specifies the timeout for everything Git
+	Timeout int
+
+	// CloneOptions describes how a clone should be performed.
+	CloneOptions *CloneOptions
+
+	// PullOptions describes how a pull should be performed.
+	//
+	// ⚠️ Removed ⚠️ -- Not used.
+	//
+	//PullOptions *Pull
 }
+
+type CloneOptions struct {
+	// Limit fetching to the specified number of commits.
+	Depth int
+
+	// RecurseSubmodules after the clone is created, initialize all submodules
+	// within, using their default settings. This option is ignored if the
+	// cloned repository does not have a worktree.
+	RecurseSubmodules SubmoduleRescursivity
+
+	// ShallowSubmodules limit cloning submodules to the 1 level of depth.
+	// It matches the git command --shallow-submodules.
+	ShallowSubmodules bool
+
+	// Progress is where the human-readable information sent by the server is
+	// stored, if nil nothing is stored and the capability (if supported)
+	// no-progress, is sent to the server to avoid send this information.
+	Progress sideband.Progress
+}
+
+type TagMode int
+
+const (
+	InvalidTagMode TagMode = iota
+	// TagFollowing any tag that points into the histories being fetched is also
+	// fetched. TagFollowing requires a server with `include-tag` capability
+	// in order to fetch the annotated tags objects.
+	TagFollowing
+	// AllTags fetch all tags from the remote (i.e., fetch remote tags
+	// refs/tags/* into local tags with the same name)
+	AllTags
+	// NoTags fetch no tags from the remote at all
+	NoTags
+)
+
+// SubmoduleRescursivity defines how depth will affect any submodule recursive
+// operation.
+type SubmoduleRescursivity uint
+
+//
+// ⚠️ Removed ⚠️ -- Not used.
+//
+/*type Pull struct {
+	// Limit fetching to the specified number of commits.
+	Depth *int
+}*/
+
+//
+// 📝 MEMO: This section is there for documentation purposes.
+//
 
 // Remote contains the configuration for a given remote repository.
 //
-// It is almost a copy/paste of `type RemoteConfig struct` in go-git v5
-type Remote struct {
+// Source: `type RemoteConfig struct` in go-git v5
+/*type Remote struct {
 	// Name of the remote
+	//
+	// ⚠️ Removed ⚠️ -- Already at the root of the main Config struct.
 	//
 	// Well known Name is `origin`.
 	//
-	Name string
+	//Name string
 
 	// URLs the URLs of a remote repository. It must be non-empty. Fetch will
 	// always use the first URL, while push will use all of them.
@@ -69,20 +143,42 @@ type Remote struct {
 	// ⚠️ Removed ⚠️ -- No clue what this is and how to test or if it's even needed for any of the methods.
 	//
 	//raw *format.Subsection
-}
+}*/
 
 // CloneOptions describes how a clone should be performed.
-type CloneOptions struct {
+//
+// Source: `type CloneOptions struct` in go-git v5
+/*type CloneOptions struct {
 	// The (possibly remote) repository URL to clone from.
-	URL string
+	//
+	// ✅ Added ✅ -- It is already added via the initializing of the service.
+	//
+	//URL string
+
 	// Auth credentials, if required, to use with the remote repository.
-	Auth transport.AuthMethod
+	//
+	// ✅ Added ✅ -- Already at the root of the main Config struct.
+	//
+	//Auth transport.AuthMethod
+
 	// Name of the remote to be added, by default `origin`.
-	RemoteName string
+	//
+	// ✅ Added ✅ -- Already at the root of the main Config struct.
+	//
+	//RemoteName string
+
 	// Remote branch to clone.
-	ReferenceName plumbing.ReferenceName
+	//
+	// ⚠️ Removed ⚠️ -- Not used.
+	//
+	//ReferenceName plumbing.ReferenceName
+
 	// Fetch only ReferenceName if true.
-	SingleBranch bool
+	//
+	// ⚠️ Removed ⚠️ -- Not used.
+	//
+	//SingleBranch bool
+
 	// Mirror clones the repository as a mirror.
 	//
 	// Compared to a bare clone, mirror not only maps local branches of the
@@ -90,31 +186,73 @@ type CloneOptions struct {
 	// remote-tracking branches, notes etc.) and sets up a refspec configuration
 	// such that all these refs are overwritten by a git remote update in the
 	// target repository.
-	Mirror bool
+	//
+	// ⚠️ Removed ⚠️ -- Not added because there is no test for it.
+	//
+	// 💡 It could be added later. 💡
+	//Mirror bool
+
 	// No checkout of HEAD after clone if true.
-	NoCheckout bool
+	//
+	// ⚠️ Removed ⚠️ -- Not added because there is no test for it.
+	//
+	// 💡 It could be added later. 💡
+	//NoCheckout bool
+
 	// Limit fetching to the specified number of commits.
-	Depth int
+	//
+	// ✅ Added ✅ -- Already at the root of the main Config struct.
+	//
+	//Depth int
+
 	// RecurseSubmodules after the clone is created, initialize all submodules
 	// within, using their default settings. This option is ignored if the
 	// cloned repository does not have a worktree.
-	RecurseSubmodules SubmoduleRescursivity
+	//
+	// ✅ Added ✅
+	//
+	//RecurseSubmodules SubmoduleRescursivity
+
 	// ShallowSubmodules limit cloning submodules to the 1 level of depth.
 	// It matches the git command --shallow-submodules.
-	ShallowSubmodules bool
-	// Progress is where the human readable information sent by the server is
+	//
+	// ✅ Added ✅
+	//
+	//ShallowSubmodules bool
+
+	// Progress is where the human-readable information sent by the server is
 	// stored, if nil nothing is stored and the capability (if supported)
 	// no-progress, is sent to the server to avoid send this information.
-	Progress sideband.Progress
+	//
+	// ✅ Added ✅
+	//
+	//Progress sideband.Progress
+
 	// Tags describe how the tags will be fetched from the remote repository,
 	// by default is AllTags.
-	Tags TagMode
+	//
+	// ✅ Added ✅ -- With changed default
+	//
+	//Tags TagMode
+
 	// InsecureSkipTLS skips ssl verify if protocol is https
-	InsecureSkipTLS bool
+	//
+	// ✅ Added ✅
+	//
+	//InsecureSkipTLS bool
+
 	// CABundle specify additional ca bundle with system cert pool
-	CABundle []byte
+	//
+	// ✅ Added ✅
+	//
+	//CABundle []byte
+
 	// ProxyOptions provides info required for connecting to a proxy.
-	ProxyOptions transport.ProxyOptions
+	//
+	// ✅ Added ✅
+	//
+	//ProxyOptions transport.ProxyOptions
+
 	// When the repository to clone is on the local machine, instead of
 	// using hard links, automatically setup .git/objects/info/alternates
 	// to share the objects with the source repository.
@@ -123,20 +261,32 @@ type CloneOptions struct {
 	// you understand what it does.
 	//
 	// [Reference]: https://git-scm.com/docs/git-clone#Documentation/git-clone.txt---shared
-	Shared bool
-}
+	//
+	// ⚠️ Removed ⚠️ -- There does not seem to be needed
+	//
+	//Shared bool
+}*/
 
 // MergeOptions describes how a merge should be performed.
-type MergeOptions struct {
+//
+// ⚠️ Removed ⚠️ -- Not used.
+//
+/*type MergeOptions struct {
 	// Strategy defines the merge strategy to be used.
 	Strategy MergeStrategy
-}
+}*/
 
 // MergeStrategy represents the different types of merge strategies.
-type MergeStrategy int8
+//
+// ⚠️ Removed ⚠️ -- Not used.
+//
+//type MergeStrategy int8
 
 // PullOptions describes how a pull should be performed.
-type PullOptions struct {
+//
+// ⚠️ Removed ⚠️ -- Not used.
+//
+/*type PullOptions struct {
 	// Name of the remote to be pulled. If empty, uses the default.
 	RemoteName string
 	// RemoteURL overrides the remote repo address with a custom URL
@@ -165,10 +315,13 @@ type PullOptions struct {
 	CABundle []byte
 	// ProxyOptions provides info required for connecting to a proxy.
 	ProxyOptions transport.ProxyOptions
-}
+}*/
 
 // FetchOptions describes how a fetch should be performed
-type FetchOptions struct {
+//
+// ⚠️ Removed ⚠️ -- Not used.
+//
+/*type FetchOptions struct {
 	// Name of the remote to fetch from. Defaults to origin.
 	RemoteName string
 	// RemoteURL overrides the remote repo address with a custom URL
@@ -198,12 +351,13 @@ type FetchOptions struct {
 	// Prune specify that local refs that match given RefSpecs and that do
 	// not exist remotely will be removed.
 	Prune bool
-}
-
-type TagMode int
+}*/
 
 // PushOptions describes how a push should be performed.
-type PushOptions struct {
+//
+// ⚠️ Removed ⚠️ -- Not used.
+//
+/*type PushOptions struct {
 	// RemoteName is the name of the remote to be pushed to.
 	RemoteName string
 	// RemoteURL overrides the remote repo address with a custom URL
@@ -246,23 +400,29 @@ type PushOptions struct {
 	Atomic bool
 	// ProxyOptions provides info required for connecting to a proxy.
 	ProxyOptions transport.ProxyOptions
-}
+}*/
 
 // ForceWithLease sets fields on the lease
 // If neither RefName nor Hash are set, ForceWithLease protects
 // all refs in the refspec by ensuring the ref of the remote in the local repsitory
 // matches the one in the ref advertisement.
-type ForceWithLease struct {
+//
+// ⚠️ Removed ⚠️ -- Not used.
+//
+/*type ForceWithLease struct {
 	// RefName, when set will protect the ref by ensuring it matches the
 	// hash in the ref advertisement.
 	RefName plumbing.ReferenceName
 	// Hash is the expected object id of RefName. The push will be rejected unless this
 	// matches the corresponding object id of RefName in the refs advertisement.
 	Hash plumbing.Hash
-}
+}*/
 
 // SubmoduleUpdateOptions describes how a submodule update should be performed.
-type SubmoduleUpdateOptions struct {
+//
+// ⚠️ Removed ⚠️ -- Not used.
+//
+/*type SubmoduleUpdateOptions struct {
 	// Init, if true initializes the submodules recorded in the index.
 	Init bool
 	// NoFetch tell to the update command to not fetch new objects from the
@@ -277,14 +437,13 @@ type SubmoduleUpdateOptions struct {
 	// Depth limit fetching to the specified number of commits from the tip of
 	// each remote branch history.
 	Depth int
-}
-
-// SubmoduleRescursivity defines how depth will affect any submodule recursive
-// operation.
-type SubmoduleRescursivity uint
+}*/
 
 // CheckoutOptions describes how a checkout operation should be performed.
-type CheckoutOptions struct {
+//
+// ⚠️ Removed ⚠️ -- Not used.
+//
+/*type CheckoutOptions struct {
 	// Hash is the hash of a commit or tag to be checked out. If used, HEAD
 	// will be in detached mode. If Create is not used, Branch and Hash are
 	// mutually exclusive.
@@ -303,13 +462,19 @@ type CheckoutOptions struct {
 	Keep bool
 	// SparseCheckoutDirectories
 	SparseCheckoutDirectories []string
-}
+}*/
 
 // ResetMode defines the mode of a reset operation.
-type ResetMode int8
+//
+// ⚠️ Removed ⚠️ -- Not used.
+//
+//type ResetMode int8
 
 // ResetOptions describes how a reset operation should be performed.
-type ResetOptions struct {
+//
+// ⚠️ Removed ⚠️ -- Not used.
+//
+/*type ResetOptions struct {
 	// Commit, if commit is present set the current branch head (HEAD) to it.
 	Commit plumbing.Hash
 	// Mode, form resets the current branch head to Commit and possibly updates
@@ -319,12 +484,18 @@ type ResetOptions struct {
 	// Files, if not empty will constrain the reseting the index to only files
 	// specified in this list.
 	Files []string
-}
+}*/
 
-type LogOrder int8
+//
+// ⚠️ Removed ⚠️ -- Not used.
+//
+//type LogOrder int8
 
 // LogOptions describes how a log action should be performed.
-type LogOptions struct {
+//
+// ⚠️ Removed ⚠️ -- Not used.
+//
+/*type LogOptions struct {
 	// When the From option is set the log will only contain commits
 	// reachable from it. If this option is not set, HEAD will be used as
 	// the default From.
@@ -358,10 +529,13 @@ type LogOptions struct {
 	// Show commits older than a specific date.
 	// It is equivalent to running `git log --until <date>` or `git log --before <date>`.
 	Until *time.Time
-}
+}*/
 
 // AddOptions describes how an `add` operation should be performed
-type AddOptions struct {
+//
+// ⚠️ Removed ⚠️ -- Not used.
+//
+/*type AddOptions struct {
 	// All equivalent to `git add -A`, update the index not only where the
 	// working tree has a file matching `Path` but also where the index already
 	// has an entry. This adds, modifies, and removes index entries to match the
@@ -378,10 +552,13 @@ type AddOptions struct {
 	// Notice that when passing an ignored path it will be added anyway.
 	// When true it can speed up adding files to the worktree in very large repositories.
 	SkipStatus bool
-}
+}*/
 
 // CommitOptions describes how a commit operation should be performed.
-type CommitOptions struct {
+//
+// ⚠️ Removed ⚠️ -- Not used.
+//
+/*type CommitOptions struct {
 	// All automatically stage files that have been modified and deleted, but
 	// new files you have not told Git about are not affected.
 	All bool
@@ -409,10 +586,13 @@ type CommitOptions struct {
 	// Amend will create a new commit object and replace the commit that HEAD currently
 	// points to. Cannot be used with All nor Parents.
 	Amend bool
-}
+}*/
 
 // CreateTagOptions describes how a tag object should be created.
-type CreateTagOptions struct {
+//
+// ⚠️ Removed ⚠️ -- Not used.
+//
+/*type CreateTagOptions struct {
 	// Tagger defines the signature of the tag creator. If Tagger is empty the
 	// Name and Email is read from the config, and time.Now it's used as When.
 	Tagger *object.Signature
@@ -423,34 +603,51 @@ type CreateTagOptions struct {
 	// SignKey denotes a key to sign the tag with. A nil value here means the tag
 	// will not be signed. The private key must be present and already decrypted.
 	SignKey *openpgp.Entity
-}
+}*/
 
 // ListOptions describes how a remote list should be performed.
-type ListOptions struct {
+/*type ListOptions struct {
 	// Auth credentials, if required, to use with the remote repository.
+	//
+	// ✅ Added ✅ -- Already at the root of the main Config struct.
+	//
 	Auth transport.AuthMethod
+
 	// InsecureSkipTLS skips ssl verify if protocol is https
 	InsecureSkipTLS bool
+
 	// CABundle specify additional ca bundle with system cert pool
 	CABundle []byte
+
 	// PeelingOption defines how peeled objects are handled during a
 	// remote list.
+	//
+	// ⚠️ Removed ⚠️ -- Not used.
+	//
 	PeelingOption PeelingOption
+
 	// ProxyOptions provides info required for connecting to a proxy.
 	ProxyOptions transport.ProxyOptions
+
 	// Timeout specifies the timeout in seconds for list operations
 	Timeout int
-}
+}*/
 
 // PeelingOption represents the different ways to handle peeled references.
 //
 // Peeled references represent the underlying object of an annotated
 // (or signed) tag. Refer to upstream documentation for more info:
 // https://github.com/git/git/blob/master/Documentation/technical/reftable.txt
-type PeelingOption uint8
+//
+// ⚠️ Removed ⚠️ -- Not used.
+//
+//type PeelingOption uint8
 
 // GrepOptions describes how a grep should be performed.
-type GrepOptions struct {
+//
+// ⚠️ Removed ⚠️ -- Not used.
+//
+/*type GrepOptions struct {
 	// Patterns are compiled Regexp objects to be matched.
 	Patterns []*regexp.Regexp
 	// InvertMatch selects non-matching lines.
@@ -461,37 +658,49 @@ type GrepOptions struct {
 	ReferenceName plumbing.ReferenceName
 	// PathSpecs are compiled Regexp objects of pathspec to use in the matching.
 	PathSpecs []*regexp.Regexp
-}
+}*/
 
 // PlainOpenOptions describes how opening a plain repository should be
 // performed.
-type PlainOpenOptions struct {
+//
+// ⚠️ Removed ⚠️ -- Not used.
+//
+/*type PlainOpenOptions struct {
 	// DetectDotGit defines whether parent directories should be
 	// walked until a .git directory or file is found.
 	DetectDotGit bool
 	// Enable .git/commondir support (see https://git-scm.com/docs/gitrepository-layout#Documentation/gitrepository-layout.txt).
 	// NOTE: This option will only work with the filesystem storage.
 	EnableDotGitCommonDir bool
-}
+}*/
 
-type PlainInitOptions struct {
+//
+// ⚠️ Removed ⚠️ -- Not used.
+//
+/*type PlainInitOptions struct {
 	InitOptions
 	// Determines if the repository will have a worktree (non-bare) or not (bare).
 	Bare         bool
 	ObjectFormat formatcfg.ObjectFormat
-}
+}*/
 
 // RestoreOptions describes how a restore should be performed.
-type RestoreOptions struct {
+//
+// ⚠️ Removed ⚠️ -- Not used.
+//
+/*type RestoreOptions struct {
 	// Marks to restore the content in the index
 	Staged bool
 	// Marks to restore the content of the working tree
 	Worktree bool
 	// List of file paths that will be restored
 	Files []string
-}
+}*/
 
-type InitOptions struct {
+//
+// ⚠️ Removed ⚠️ -- Not used.
+//
+/*type InitOptions struct {
 	// The default branch (e.g. "refs/heads/master")
 	DefaultBranch plumbing.ReferenceName
-}
+}*/

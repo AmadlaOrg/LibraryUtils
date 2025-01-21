@@ -2,24 +2,22 @@ package git
 
 import (
 	"fmt"
-	"github.com/AmadlaOrg/LibraryUtils/git/remote"
+	"github.com/AmadlaOrg/LibraryUtils/git/config"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
-	"github.com/go-git/go-git/v5/plumbing/transport/http"
-	"os"
 )
 
 // IGit to help with mocking
 type IGit interface {
-	FetchRepo(url, dest string) error
-	CommitHeadHash(repoPath string) (string, error)
-	CheckoutTag(repoPath, tagName string) error
+	Clone() error
+	CommitHeadHash() (string, error)
+	CheckoutTag(tagName string) error
 }
 
 type SGit struct {
-	url              string
-	repositoryPath   string
-	serviceGitRemote remote.IRemote
+	url            string
+	repositoryPath string
+	config         *config.Config
 }
 
 var (
@@ -27,24 +25,27 @@ var (
 	gitPlainClone = git.PlainClone
 )
 
-// FetchRepo clones the repository from the given URL to the specified destination.
-func (s *SGit) FetchRepo(url, dest string) error {
-	_, err := gitPlainClone(dest, false, &git.CloneOptions{
-		URL:      url,
-		Progress: os.Stdout,
-		// TODO: Add support for authentication because some people might require it
-		// If you need authentication, add it here
-		Auth: &http.BasicAuth{
-			Username: "your-username", // yes, this can be anything except an empty string
-			Password: "your-token",
-		},
+// Clone clones the repository from the given URL to the specified destination
+func (s *SGit) Clone() error {
+	_, err := gitPlainClone(s.repositoryPath, false, &git.CloneOptions{
+		URL:               s.url,
+		RemoteName:        s.config.RemoteName,
+		ShallowSubmodules: true,                        //s.config.CloneOptions.ShallowSubmodules, // TODO
+		Depth:             s.config.CloneOptions.Depth, // TODO
+		Auth:              *s.config.Auth,
+		RecurseSubmodules: git.SubmoduleRescursivity(s.config.CloneOptions.RecurseSubmodules),
+		Progress:          s.config.CloneOptions.Progress, //os.Stdout,
+		Tags:              git.NoTags,
+		InsecureSkipTLS:   *s.config.InsecureSkipTLS,
+		CABundle:          s.config.CABundle,
+		ProxyOptions:      s.config.ProxyOptions,
 	})
 	return err
 }
 
 // CommitHeadHash retrieves the hash of the most recent commit
-func (s *SGit) CommitHeadHash(repoPath string) (string, error) {
-	repo, err := gitPlainOpen(repoPath)
+func (s *SGit) CommitHeadHash() (string, error) {
+	repo, err := gitPlainOpen(s.repositoryPath)
 	if err != nil {
 		return "", err
 	}
@@ -65,8 +66,8 @@ func (s *SGit) CommitHeadHash(repoPath string) (string, error) {
 }
 
 // CheckoutTag checks out the specified branch or tag in the repository.
-func (s *SGit) CheckoutTag(repoPath, tagName string) error {
-	repo, err := gitPlainOpen(repoPath)
+func (s *SGit) CheckoutTag(tagName string) error {
+	repo, err := gitPlainOpen(s.repositoryPath)
 	if err != nil {
 		return err
 	}
@@ -80,6 +81,7 @@ func (s *SGit) CheckoutTag(repoPath, tagName string) error {
 	// Attempt to check out the reference as a branch
 	err = worktree.Checkout(&git.CheckoutOptions{
 		Branch: plumbing.ReferenceName(fmt.Sprintf("refs/tags/%s", tagName)), //plumbing.NewBranchReferenceName(refName),
+		Force:  true,
 	})
 	if err != nil {
 		return err
