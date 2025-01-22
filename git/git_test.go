@@ -1,130 +1,51 @@
 package git
 
-// FIXME:
+import (
+	"errors"
+	"github.com/AmadlaOrg/LibraryUtils/git/config"
+	"github.com/go-git/go-git/v5"
+	"github.com/stretchr/testify/assert"
+	"testing"
+)
 
-// Test FetchRepo
-/*func TestFetchRepo(t *testing.T) {
-	mockGit := new(MockGit)
-	testURL := "https://github.com/git-fixtures/basic.git"
-	testDest := "/tmp/repo"
-
-	mockGit.On("FetchRepo", testURL, testDest).Return(nil)
-
-	sgit := &SGit{}
-
-	err := sgit.FetchRepo(testURL, testDest)
-
-	// Assert that the method was called with correct params
-	mockGit.AssertCalled(t, "FetchRepo", testURL, testDest)
-	require.NoError(t, err)
-}*/
-
-// Test FetchRepo with Error
-/*func TestFetchRepo_Error(t *testing.T) {
-	mockGit := new(MockGit)
-	testURL := "https://github.com/git-fixtures/basic.git"
-	testDest := "/tmp/repo"
-
-	mockGit.On("FetchRepo", testURL, testDest).Return(errors.New("failed to clone repo"))
-
-	sgit := &SGit{}
-
-	err := sgit.FetchRepo(testURL, testDest)
-
-	// Assert that the method was called with correct params
-	mockGit.AssertCalled(t, "FetchRepo", testURL, testDest)
-	require.Error(t, err)
-	require.EqualError(t, err, "failed to clone repo")
-}
-
-// Test CommitHeadHash
-func TestCommitHeadHash(t *testing.T) {
-	mockGit := new(MockGit)
-	testRepoPath := "/tmp/repo"
-	expectedHash := "abc123"
-
-	mockGit.On("CommitHeadHash", testRepoPath).Return(expectedHash, nil)
-
-	sgit := &SGit{}
-
-	hash, err := sgit.CommitHeadHash(testRepoPath)
-
-	// Assert that the method was called with correct params
-	mockGit.AssertCalled(t, "CommitHeadHash", testRepoPath)
-	require.NoError(t, err)
-	require.Equal(t, expectedHash, hash)
-}
-
-// Test CommitHeadHash with Error
-func TestCommitHeadHash_Error(t *testing.T) {
-	mockGit := new(MockGit)
-	testRepoPath := "/tmp/repo"
-
-	mockGit.On("CommitHeadHash", testRepoPath).Return("", errors.New("failed to get commit hash"))
-
-	sgit := &SGit{}
-
-	hash, err := sgit.CommitHeadHash(testRepoPath)
-
-	// Assert that the method was called with correct params
-	mockGit.AssertCalled(t, "CommitHeadHash", testRepoPath)
-	require.Error(t, err)
-	require.Equal(t, "", hash)
-	require.EqualError(t, err, "failed to get commit hash")
-}
-
-// Test CheckoutTag
 func TestCheckoutTag(t *testing.T) {
-	mockGit := new(MockGit)
-	testRepoPath := "/tmp/repo"
-	testTag := "v1.0.0"
-
-	mockGit.On("CheckoutTag", testRepoPath, testTag).Return(nil)
-
-	sgit := &SGit{}
-
-	err := sgit.CheckoutTag(testRepoPath, testTag)
-
-	// Assert that the method was called with correct params
-	mockGit.AssertCalled(t, "CheckoutTag", testRepoPath, testTag)
-	require.NoError(t, err)
-}
-
-// Test CheckoutTag with Error
-func TestCheckoutTag_Error(t *testing.T) {
-	mockGit := new(MockGit)
-	testRepoPath := "/tmp/repo"
-	testTag := "v1.0.0"
-
-	mockGit.On("CheckoutTag", testRepoPath, testTag).Return(errors.New("failed to checkout tag"))
-
-	sgit := &SGit{}
-
-	err := sgit.CheckoutTag(testRepoPath, testTag)
-
-	// Assert that the method was called with correct params
-	mockGit.AssertCalled(t, "CheckoutTag", testRepoPath, testTag)
-	require.Error(t, err)
-	require.EqualError(t, err, "failed to checkout tag")
-}*/
-
-// TODO:
-/*func TestCheckoutTag(t *testing.T) {
 	tests := []struct {
 		name                 string
 		inputTagName         string
-		internalGitPlainOpen func(path string) (*git.Repository, error)
+		internalGitPlainOpen func(path string) (IGoGitRepository, error)
 		expectedError        error
 		hasError             bool
 	}{
 		{
-			name:         "tag exists",
+			name:         "Error: git.PlainOpen fails",
 			inputTagName: "v1.0.0",
-			internalGitPlainOpen: func(path string) (*git.Repository, error) {
-
-				return git.PlainOpen(path)
+			internalGitPlainOpen: func(path string) (IGoGitRepository, error) {
+				return &git.Repository{}, errors.New("some error (git.PlainOpen)")
 			},
-			hasError: false,
+			expectedError: errors.New("some error (git.PlainOpen)"),
+			hasError:      true,
+		},
+		{
+			name:         "Error: repo.Worktree fails",
+			inputTagName: "v1.0.0",
+			internalGitPlainOpen: func(path string) (IGoGitRepository, error) {
+				mockGoGitRepository := NewMockGoGitRepository(t)
+				mockGoGitRepository.EXPECT().Worktree().Return(nil, errors.New("some error (repo.Worktree)"))
+				return mockGoGitRepository, nil
+			},
+			expectedError: errors.New("some error (repo.Worktree)"),
+			hasError:      true,
+		},
+		{
+			name:         "Error: repo.Worktree fails",
+			inputTagName: "v1.0.0",
+			internalGitPlainOpen: func(path string) (IGoGitRepository, error) {
+				mockGoGitRepository := NewMockGoGitRepository(t)
+				mockGoGitRepository.EXPECT().Worktree().Return(nil, errors.New("some error (repo.Worktree)"))
+				return mockGoGitRepository, nil
+			},
+			expectedError: errors.New("some error (repo.Worktree)"),
+			hasError:      true,
 		},
 	}
 
@@ -134,6 +55,14 @@ func TestCheckoutTag_Error(t *testing.T) {
 			defer func() { gitPlainOpen = originalGitPlainOpen }()
 			gitPlainOpen = tt.internalGitPlainOpen
 
+			gitService := NewGitService("mock_repo_url", "mock_repo_local_path", &config.Config{})
+			err := gitService.CheckoutTag(tt.inputTagName)
+			if tt.hasError {
+				assert.Error(t, err)
+				assert.EqualError(t, tt.expectedError, err.Error())
+			} else {
+				assert.NoError(t, err)
+			}
 		})
 	}
-}*/
+}

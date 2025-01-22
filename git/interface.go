@@ -53,3 +53,25 @@ type IGoGitRepository interface {
 	RepackObjects(cfg *git.RepackConfig) (err error)
 	Merge(ref plumbing.Reference, opts git.MergeOptions) error
 }
+
+type IGoGitWorktree interface {
+	Pull(o *git.PullOptions) error
+	PullContext(ctx context.Context, o *git.PullOptions) error
+	Checkout(opts *git.CheckoutOptions) error
+	ResetSparsely(opts *git.ResetOptions, dirs []string) error
+	Restore(o *git.RestoreOptions) error
+	Reset(opts *git.ResetOptions) error
+	Submodule(name string) (*git.Submodule, error)
+	Submodules() (git.Submodules, error)
+	Clean(opts *git.CleanOptions) error
+	Grep(opts *git.GrepOptions) ([]git.GrepResult, error)
+	Status() (git.Status, error)
+	StatusWithOptions(o git.StatusOptions) (git.Status, error)
+	Add(path string) (plumbing.Hash, error)
+	AddWithOptions(opts *git.AddOptions) error
+	AddGlob(pattern string) error
+	Remove(path string) (plumbing.Hash, error)
+	RemoveGlob(pattern string) error
+	Move(from, to string) (plumbing.Hash, error)
+	Commit(msg string, opts *git.CommitOptions) (plumbing.Hash, error)
+}

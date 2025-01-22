@@ -21,6 +21,11 @@ packages:
           dir: "{{.InterfaceDir}}"
           mockName: "MockGoGitRepository"
           inpackage: True
+      IGoGitWorktree:
+        config:
+          dir: "{{.InterfaceDir}}"
+          mockName: "MockGoGitWorktree"
+          inpackage: True
   github.com/AmadlaOrg/LibraryUtils/git/remote:
     interfaces:
       IRemote:

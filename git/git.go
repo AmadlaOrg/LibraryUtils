@@ -21,8 +21,12 @@ type SGit struct {
 }
 
 var (
-	gitPlainOpen  = git.PlainOpen
-	gitPlainClone = git.PlainClone
+	gitPlainOpen = func(path string) (IGoGitRepository, error) {
+		return git.PlainOpen(path)
+	}
+	gitPlainClone = func(path string, isBare bool, o *git.CloneOptions) (IGoGitRepository, error) {
+		return git.PlainClone(path, isBare, o)
+	}
 )
 
 // Clone clones the repository from the given URL to the specified destination
@@ -79,7 +83,8 @@ func (s *SGit) CheckoutTag(tagName string) error {
 
 	// Attempt to check out the reference as a branch
 	err = worktree.Checkout(&git.CheckoutOptions{
-		Branch: plumbing.ReferenceName(fmt.Sprintf("refs/tags/%s", tagName)), //plumbing.NewBranchReferenceName(refName),
+		// 🤷 -> Branch: plumbing.NewBranchReferenceName(refName),
+		Branch: plumbing.ReferenceName(fmt.Sprintf("refs/tags/%s", tagName)),
 		Force:  true,
 	})
 	if err != nil {

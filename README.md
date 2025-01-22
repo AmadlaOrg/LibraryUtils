@@ -10,8 +10,9 @@
 - Scripts in `.script/` that are just simple tools to help with development (they do require some level of handholding)
 
 > [!NOTE]
-> This repository is here unify common code, and to make it easier to quickly implement mocks for common Golang libraries
-> and other external libraries used.
+> This repository is here to unify common code use in different Amadla Golang projects
+> and to make it easier to quickly implement mocks for common Golang libraries
+> and other external libraries.
 
 ## 📄 Documentation?
 The code is the documentation 🛂. 🌝
