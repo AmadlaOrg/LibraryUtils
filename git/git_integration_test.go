@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-func Test_Integration_FetchRepo(t *testing.T) {
+func Test_Integration_Clone(t *testing.T) {
 	tempDir, err := os.MkdirTemp("", "hery_test_*")
 	if err != nil {
 		t.Fatal(err)
@@ -63,8 +63,7 @@ func Test_Integration_FetchRepo(t *testing.T) {
 	}
 }
 
-// FIXME: Maybe use "static" repo
-/*func Test_Integration_CommitHeadHash(t *testing.T) {
+func Test_Integration_CommitHeadHash(t *testing.T) {
 	tempDir, err := os.MkdirTemp("", "hery_test_*")
 	if err != nil {
 		t.Fatal(err)
@@ -78,18 +77,18 @@ func Test_Integration_FetchRepo(t *testing.T) {
 		}
 	}(tempDir)
 
-	gitService := NewGitService()
+	gitService := NewGitService("https://github.com/AmadlaOrg/QAFixturesEntityMultipleTagVersion", tempDir, &config.Config{})
 
-	err = gitService.FetchRepo("https://github.com/AmadlaOrg/QAFixturesEntityPseudoVersion", tempDir)
+	err = gitService.Clone()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	hash, err := gitService.CommitHeadHash(tempDir)
+	hash, err := gitService.CommitHeadHash()
 
 	assert.NoError(t, err)
-	assert.Equal(t, "a33efb99e6c7d182034a5c5c2cb7a165026bff84", hash)
-}*/
+	assert.Equal(t, "8be468562e86eafd0841fe9cfb4a642984c72b87", hash)
+}
 
 // Mock the PlainOpen function to return an error
 func Test_Integration_CommitHeadHash_RepoOpenError(t *testing.T) {
@@ -177,6 +176,26 @@ func Test_Integration_CommitHeadHash_CommitObjectError(t *testing.T) {
 	_, err = gitService.CommitHeadHash()
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "object not found") // Customize this based on actual error message
+}
+
+func Test_Integration_CheckoutTag(t *testing.T) {
+	tempDir, err := os.MkdirTemp("", "hery_test_*")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func(path string) {
+		err := os.RemoveAll(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}(tempDir)
+
+	gitService := NewGitService("https://github.com/AmadlaOrg/QAFixturesEntityMultipleTagVersion", tempDir, &config.Config{})
+	err = gitService.Clone()
+	assert.NoError(t, err)
+
+	err = gitService.CheckoutTag("v2.0.1")
+	assert.NoError(t, err)
 }
 
 // Test repository open error

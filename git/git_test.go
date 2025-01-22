@@ -107,3 +107,33 @@ func TestCheckoutTag_Error(t *testing.T) {
 	require.Error(t, err)
 	require.EqualError(t, err, "failed to checkout tag")
 }*/
+
+// TODO:
+/*func TestCheckoutTag(t *testing.T) {
+	tests := []struct {
+		name                 string
+		inputTagName         string
+		internalGitPlainOpen func(path string) (*git.Repository, error)
+		expectedError        error
+		hasError             bool
+	}{
+		{
+			name:         "tag exists",
+			inputTagName: "v1.0.0",
+			internalGitPlainOpen: func(path string) (*git.Repository, error) {
+
+				return git.PlainOpen(path)
+			},
+			hasError: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			originalGitPlainOpen := gitPlainOpen
+			defer func() { gitPlainOpen = originalGitPlainOpen }()
+			gitPlainOpen = tt.internalGitPlainOpen
+
+		})
+	}
+}*/

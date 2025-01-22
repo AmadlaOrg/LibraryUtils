@@ -33,7 +33,7 @@ func (s *SRemote) Tags() ([]string, error) {
 	})
 
 	refs, err := rem.List(&git.ListOptions{
-		Auth:            *s.config.Auth,
+		Auth:            s.config.Auth,
 		InsecureSkipTLS: *s.config.InsecureSkipTLS,
 		CABundle:        s.config.CABundle,
 		ProxyOptions:    s.config.ProxyOptions,
@@ -63,7 +63,7 @@ func (s *SRemote) CommitHeadHash() (string, error) {
 
 	// List all references from the remote repository
 	refs, err := rem.List(&git.ListOptions{
-		Auth:            *s.config.Auth,
+		Auth:            s.config.Auth,
 		InsecureSkipTLS: *s.config.InsecureSkipTLS,
 		CABundle:        s.config.CABundle,
 		ProxyOptions:    s.config.ProxyOptions,

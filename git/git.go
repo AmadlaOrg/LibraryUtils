@@ -29,13 +29,12 @@ var (
 func (s *SGit) Clone() error {
 	_, err := gitPlainClone(s.repositoryPath, false, &git.CloneOptions{
 		URL:               s.url,
-		RemoteName:        s.config.RemoteName,
-		ShallowSubmodules: true,                        //s.config.CloneOptions.ShallowSubmodules, // TODO
-		Depth:             s.config.CloneOptions.Depth, // TODO
-		Auth:              *s.config.Auth,
+		RemoteName:        s.config.RemoteName, // TODO: How to handle default, maybe add origin as the default
+		ShallowSubmodules: s.config.CloneOptions.ShallowSubmodules,
+		Depth:             s.config.CloneOptions.Depth,
+		Auth:              s.config.Auth,
 		RecurseSubmodules: git.SubmoduleRescursivity(s.config.CloneOptions.RecurseSubmodules),
-		Progress:          s.config.CloneOptions.Progress, //os.Stdout,
-		Tags:              git.NoTags,
+		Progress:          s.config.CloneOptions.Progress,
 		InsecureSkipTLS:   *s.config.InsecureSkipTLS,
 		CABundle:          s.config.CABundle,
 		ProxyOptions:      s.config.ProxyOptions,

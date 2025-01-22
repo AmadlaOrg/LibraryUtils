@@ -7,7 +7,7 @@ import (
 
 type Config struct {
 	// Auth credentials, if required, to use with the remote repository.
-	Auth *transport.AuthMethod
+	Auth transport.AuthMethod
 
 	// Name of the remote to be added, by default `origin`.
 	RemoteName string
