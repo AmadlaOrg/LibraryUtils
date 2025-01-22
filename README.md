@@ -1,6 +1,6 @@
 <img src=".assets/soufflets.jpg" alt="Electronics photo" style="width: 400px;" align="right">
 
-# LibraryUtils
+# LibraryUtils 📚
 📚 Library Utils 📚
 
 ## What it contains
