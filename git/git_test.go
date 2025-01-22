@@ -36,17 +36,6 @@ func TestCheckoutTag(t *testing.T) {
 			expectedError: errors.New("some error (repo.Worktree)"),
 			hasError:      true,
 		},
-		{
-			name:         "Error: repo.Worktree fails",
-			inputTagName: "v1.0.0",
-			internalGitPlainOpen: func(path string) (IGoGitRepository, error) {
-				mockGoGitRepository := NewMockGoGitRepository(t)
-				mockGoGitRepository.EXPECT().Worktree().Return(nil, errors.New("some error (repo.Worktree)"))
-				return mockGoGitRepository, nil
-			},
-			expectedError: errors.New("some error (repo.Worktree)"),
-			hasError:      true,
-		},
 	}
 
 	for _, tt := range tests {

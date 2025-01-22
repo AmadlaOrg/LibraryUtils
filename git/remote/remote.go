@@ -6,6 +6,7 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/storage"
 	"github.com/go-git/go-git/v5/storage/memory"
 )
 
@@ -21,18 +22,19 @@ type SRemote struct {
 }
 
 var (
-	gitNewRemote     = git.NewRemote
-	memoryNewStorage = memory.NewStorage
+	gitNewRemote = func(s storage.Storer, c *config.RemoteConfig) IGoGitRemote {
+		return git.NewRemote(s, c)
+	}
 )
 
 // Tags returns a list of tags for the repository at the specified URL.
 func (s *SRemote) Tags() ([]string, error) {
-	rem := gitNewRemote(memoryNewStorage(), &config.RemoteConfig{
+	r := gitNewRemote(memory.NewStorage(), &config.RemoteConfig{
 		Name: "origin",
 		URLs: []string{s.url},
 	})
 
-	refs, err := rem.List(&git.ListOptions{
+	refs, err := r.List(&git.ListOptions{
 		Auth:            s.config.Auth,
 		InsecureSkipTLS: *s.config.InsecureSkipTLS,
 		CABundle:        s.config.CABundle,
@@ -56,13 +58,13 @@ func (s *SRemote) Tags() ([]string, error) {
 
 // CommitHeadHash retrieves the hash of the most recent commit
 func (s *SRemote) CommitHeadHash() (string, error) {
-	rem := gitNewRemote(memoryNewStorage(), &config.RemoteConfig{
+	r := gitNewRemote(memory.NewStorage(), &config.RemoteConfig{
 		Name: "origin",
 		URLs: []string{s.url},
 	})
 
 	// List all references from the remote repository
-	refs, err := rem.List(&git.ListOptions{
+	refs, err := r.List(&git.ListOptions{
 		Auth:            s.config.Auth,
 		InsecureSkipTLS: *s.config.InsecureSkipTLS,
 		CABundle:        s.config.CABundle,

@@ -1,9 +1,18 @@
 package remote
 
-// FIXME: Maybe create separate "static" repos
-/*func Test_integration_Tags(t *testing.T) {
-	gitRemoteService := NewGitRemoteService()
-	tags, err := gitRemoteService.Tags("https://github.com/AmadlaOrg/QAFixturesEntityMultipleTagVersion")
+import (
+	utilGitConfig "github.com/AmadlaOrg/LibraryUtils/git/config"
+	"github.com/stretchr/testify/assert"
+	"reflect"
+	"sort"
+	"testing"
+)
+
+func Test_integration_Tags(t *testing.T) {
+	gitRemoteService := NewGitRemoteService(
+		"https://github.com/AmadlaOrg/QAFixturesEntityMultipleTagVersion",
+		&utilGitConfig.Config{})
+	tags, err := gitRemoteService.Tags()
 	if err != nil {
 		t.Errorf("Tags returned an error: %s", err)
 	}
@@ -13,6 +22,8 @@ package remote
 		"v1.0.0-alpha.2",
 		"v1.0.0-beta.1",
 		"v2.0.0",
+		"v2.0.1",
+		"v2.1.0",
 	}
 
 	sort.Strings(tags)
@@ -26,15 +37,16 @@ package remote
 	for _, tag := range tags {
 		t.Logf("Retrieved tag: %s", tag)
 	}
-}*/
+}
 
-// FIXME: Maybe create separate "static" repos
-/*func Test_integration_CommitHeadHash(t *testing.T) {
-	gitRemoteService := NewGitRemoteService()
-	hash, err := gitRemoteService.CommitHeadHash("https://github.com/AmadlaOrg/QAFixturesEntityMultipleTagVersion")
+func Test_integration_CommitHeadHash(t *testing.T) {
+	gitRemoteService := NewGitRemoteService(
+		"https://github.com/AmadlaOrg/QAFixturesEntityMultipleTagVersion",
+		&utilGitConfig.Config{})
+	hash, err := gitRemoteService.CommitHeadHash()
 	if err != nil {
 		t.Errorf("CommitHeadHash returned an error: %s", err)
 	}
 
-	assert.Equal(t, hash, "c351cf75321ae8a7676b8bef6837b67a60cabdbc")
-}*/
+	assert.Equal(t, hash, "8be468562e86eafd0841fe9cfb4a642984c72b87")
+}
