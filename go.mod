@@ -3,7 +3,7 @@ module github.com/AmadlaOrg/LibraryUtils
 go 1.23.5
 
 require (
-	github.com/go-git/go-git/v5 v5.13.1
+	github.com/go-git/go-git/v5 v5.13.2
 	github.com/stretchr/testify v1.10.0
 )
 

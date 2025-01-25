@@ -83,6 +83,69 @@ func TestCommitHeadHash(t *testing.T) {
 			expectedError: errors.New("some error (r.List)"),
 			hasError:      true,
 		},
+		{
+			name: "Error: refs == nil",
+			internalGitNewRemote: func(s storage.Storer, c *config.RemoteConfig) IGoGitRemote {
+				mockGoGitRemote := NewMockGoGitRemote(t)
+				mockGoGitRemote.EXPECT().List(mock.Anything).Return(nil, nil)
+				return mockGoGitRemote
+			},
+			expectedError: errors.New("no tags found"),
+			hasError:      true,
+		},
+		{
+			name: "Error: len(refs) == 0",
+			internalGitNewRemote: func(s storage.Storer, c *config.RemoteConfig) IGoGitRemote {
+				var plumbingReference []*plumbing.Reference
+				mockGoGitRemote := NewMockGoGitRemote(t)
+				mockGoGitRemote.EXPECT().List(mock.Anything).Return(plumbingReference, nil)
+				return mockGoGitRemote
+			},
+			expectedError: errors.New("no tags found"),
+			hasError:      true,
+		},
+		{
+			name: "Error: headRef == nil",
+			internalGitNewRemote: func(s storage.Storer, c *config.RemoteConfig) IGoGitRemote {
+				plumbingReferenceOne := &plumbing.Reference{}
+				plumbingReference := []*plumbing.Reference{
+					plumbingReferenceOne,
+				}
+				mockGoGitRemote := NewMockGoGitRemote(t)
+				mockGoGitRemote.EXPECT().List(mock.Anything).Return(plumbingReference, nil)
+				return mockGoGitRemote
+			},
+			expectedError: errors.New("HEAD reference not found"),
+			hasError:      true,
+		},
+		{
+			name: "Error: else -> commitHash = headRef.Hash()",
+			internalGitNewRemote: func(s storage.Storer, c *config.RemoteConfig) IGoGitRemote {
+				plumbingReferenceOne := plumbing.NewReferenceFromStrings("mock_name", "mock_tag")
+				plumbingReference := []*plumbing.Reference{
+					plumbingReferenceOne,
+				}
+				mockGoGitRemote := NewMockGoGitRemote(t)
+				mockGoGitRemote.EXPECT().List(mock.Anything).Return(plumbingReference, nil)
+				return mockGoGitRemote
+			},
+			expectedError: errors.New("HEAD reference not found"),
+			hasError:      true,
+		},
+		{
+			name: "Error: commitHash.IsZero()",
+			internalGitNewRemote: func(s storage.Storer, c *config.RemoteConfig) IGoGitRemote {
+				plumbingReferenceOne := plumbing.NewReferenceFromStrings("HEAD", "mock_tag")
+				plumbingReference := []*plumbing.Reference{
+					plumbingReferenceOne,
+				}
+				mockGoGitRemote := NewMockGoGitRemote(t)
+				mockGoGitRemote.EXPECT().List(mock.Anything).Return(plumbingReference, nil)
+				return mockGoGitRemote
+			},
+			expectedError: errors.New("commit hash not found"),
+			hasError:      true,
+		},
 	}
 
 	for _, tt := range tests {

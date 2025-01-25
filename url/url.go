@@ -6,6 +6,10 @@ import (
 	"strings"
 )
 
+var (
+	urlParse = url.Parse
+)
+
 // TrimVersion removes the version in the Entity URI
 func TrimVersion(entityUrl, version string) string {
 	// error)
@@ -25,14 +29,15 @@ func TrimVersion(entityUrl, version string) string {
 
 // ExtractRepoUrl adds https:// to the repository URL pass by param
 //
-// It also checks if the repoURL is of `github.com` and if it is it then does a specific validation on top of an extractions
+// It also checks if the repoURL is of `GitHub.com`
+// and if it is it then does a specific validation on top of an extractions
 // meaning if there are more path parts then it only returns the full URL for the repository itself.
 func ExtractRepoUrl(repoURL string) (string, error) {
 	if !strings.HasPrefix(repoURL, "http://") && !strings.HasPrefix(repoURL, "https://") {
 		repoURL = fmt.Sprintf("https://%s", repoURL)
 	}
 
-	u, err := url.Parse(repoURL)
+	u, err := urlParse(repoURL)
 	if err != nil {
 		return "", err
 	}

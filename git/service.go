@@ -5,7 +5,7 @@ import (
 )
 
 // NewGitService to set up the git service
-func NewGitService(url, repositoryPath string, cnf *config.Config) *SGit {
+func NewGitService(url, repositoryPath string, cnf *config.Config) IGit {
 	return &SGit{
 		url:            url,
 		repositoryPath: repositoryPath,

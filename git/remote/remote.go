@@ -1,6 +1,7 @@
 package remote
 
 import (
+	"errors"
 	"fmt"
 	utilGitConfig "github.com/AmadlaOrg/LibraryUtils/git/config"
 	"github.com/go-git/go-git/v5"
@@ -74,6 +75,8 @@ func (s *SRemote) CommitHeadHash() (string, error) {
 	})
 	if err != nil {
 		return "", err
+	} else if refs == nil || len(refs) == 0 {
+		return "", errors.New("no tags found")
 	}
 
 	var headRef *plumbing.Reference

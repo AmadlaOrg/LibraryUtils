@@ -1,6 +1,8 @@
 package url
 
 import (
+	"errors"
+	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -80,4 +82,16 @@ func TestExtractRepoPath(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestExtractRepoUrl_Error_urlParser(t *testing.T) {
+	originalUrlParse := urlParse
+	defer func() { urlParse = originalUrlParse }()
+	urlParse = func(rawURL string) (*url.URL, error) {
+		return nil, errors.New("som errors (url.Parse)")
+	}
+
+	_, err := ExtractRepoUrl("https://github.com/user/repo")
+	assert.Error(t, err)
+	assert.EqualError(t, err, "som errors (url.Parse)")
 }
