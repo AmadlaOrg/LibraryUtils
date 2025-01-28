@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 )
 
 var (
@@ -36,10 +37,22 @@ func IsFile(path string) (bool, error) {
 
 	if info.IsDir() {
 		// Return an error if the path points to a directory
-		return false, errors.Join(ErrorNotAFile, fmt.Errorf("the path %s is a directory", path))
+		return false, errors.Join(ErrorNotAFile, ErrorIsDir, fmt.Errorf("the path %s is a directory", path))
 	}
 
 	return true, nil
+}
+
+// IsFilePathDirExist checks if the directory of the given file path exists
+func IsFilePathDirExist(filePath string) (bool, string, error) {
+	dirPath := filepath.Dir(filePath)
+
+	info, err := osStat(dirPath)
+	if err != nil {
+		return false, dirPath, err
+	}
+	
+	return info.IsDir(), dirPath, nil
 }
 
 // IsValidMagic validates that the magic head matches what is in a file

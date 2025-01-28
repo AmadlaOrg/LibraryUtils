@@ -124,6 +124,127 @@ func TestIsFile(t *testing.T) {
 	}
 }
 
+func TestIsFilePathDirExist(t *testing.T) {
+	tests := []struct {
+		name                string
+		inputPath           string
+		internalOsStat      func(string) (os.FileInfo, error)
+		expected            bool
+		expectedFileDirPath string
+		expectErr           error
+		hasError            bool
+	}{
+		{
+			name:      "True: directory exists",
+			inputPath: "./testdata/file.txt",
+			internalOsStat: func(path string) (os.FileInfo, error) {
+				mockFileInfo := NewMockFileInfo(t)
+				mockFileInfo.EXPECT().IsDir().Return(true)
+				return mockFileInfo, nil
+			},
+			expected:            true,
+			expectedFileDirPath: "testdata",
+			expectErr:           nil,
+			hasError:            false,
+		},
+		{
+			name:      "True: directory exists with full path",
+			inputPath: "/home/user/testdata/file.txt",
+			internalOsStat: func(path string) (os.FileInfo, error) {
+				mockFileInfo := NewMockFileInfo(t)
+				mockFileInfo.EXPECT().IsDir().Return(true)
+				return mockFileInfo, nil
+			},
+			expected:            true,
+			expectedFileDirPath: "/home/user/testdata",
+			expectErr:           nil,
+			hasError:            false,
+		},
+		{
+			name:      "False: directory does not exist",
+			inputPath: "./nonexistent/file.txt",
+			internalOsStat: func(path string) (os.FileInfo, error) {
+				return nil, os.ErrNotExist
+			},
+			expected:            false,
+			expectedFileDirPath: "nonexistent",
+			expectErr:           os.ErrNotExist,
+			hasError:            true,
+		},
+		{
+			name:      "True: input path is a directory",
+			inputPath: "testdata",
+			internalOsStat: func(path string) (os.FileInfo, error) {
+				mockFileInfo := NewMockFileInfo(t)
+				mockFileInfo.EXPECT().IsDir().Return(true)
+				return mockFileInfo, nil
+			},
+			expected:            true,
+			expectedFileDirPath: ".",
+			expectErr:           nil,
+			hasError:            false,
+		},
+		{
+			name:      "True: file in current directory",
+			inputPath: "file.txt",
+			internalOsStat: func(path string) (os.FileInfo, error) {
+				mockFileInfo := NewMockFileInfo(t)
+				mockFileInfo.EXPECT().IsDir().Return(true)
+				return mockFileInfo, nil
+			},
+			expected:            true,
+			expectedFileDirPath: ".",
+			expectErr:           nil,
+			hasError:            false,
+		},
+		{
+			name:      "False: empty input path",
+			inputPath: "",
+			internalOsStat: func(path string) (os.FileInfo, error) {
+				return nil, os.ErrInvalid
+			},
+			expected:            false,
+			expectedFileDirPath: ".",
+			expectErr:           os.ErrInvalid,
+			hasError:            true,
+		},
+		{
+			name:      "False: invalid path format",
+			inputPath: "/invalid|path/file.txt",
+			internalOsStat: func(path string) (os.FileInfo, error) {
+				return nil, os.ErrInvalid
+			},
+			expected:            false,
+			expectedFileDirPath: "/invalid|path",
+			expectErr:           os.ErrInvalid,
+			hasError:            true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Mock osStat
+			originalOsStat := osStat
+			defer func() { osStat = originalOsStat }()
+			osStat = tt.internalOsStat
+
+			// Execute the function
+			got, dirPath, err := IsFilePathDirExist(tt.inputPath)
+
+			// Assertions
+			if tt.hasError {
+				assert.Error(t, err)
+				assert.ErrorContains(t, err, tt.expectErr.Error())
+			} else {
+				assert.NoError(t, err)
+			}
+
+			assert.Equal(t, tt.expectedFileDirPath, dirPath)
+			assert.Equal(t, tt.expected, got)
+		})
+	}
+}
+
 func TestIsValidMagic(t *testing.T) {
 	tests := []struct {
 		name                string
