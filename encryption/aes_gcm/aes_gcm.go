@@ -1,4 +1,4 @@
-package encryption
+package aes_gcm
 
 import (
 	"crypto/aes"
@@ -9,6 +9,15 @@ import (
 	"io"
 )
 
+type IAesGcm interface {
+	Encrypt(plainText string) (string, error)
+	Decrypt(cipherText string) (string, error)
+}
+
+type SAesGcm struct {
+	key string
+}
+
 var (
 	aesNewCipher      = aes.NewCipher
 	ioReadFull        = io.ReadFull
@@ -17,8 +26,8 @@ var (
 )
 
 // Encrypt text using AES-GCM
-func Encrypt(plainText, key string) (string, error) {
-	block, err := aesNewCipher([]byte(key))
+func (s *SAesGcm) Encrypt(plainText string) (string, error) {
+	block, err := aesNewCipher([]byte(s.key))
 	if err != nil {
 		return "", err
 	}
@@ -34,17 +43,18 @@ func Encrypt(plainText, key string) (string, error) {
 	}
 
 	ciphertext := aesGCM.Seal(nonce, nonce, []byte(plainText), nil)
+
 	return base64.StdEncoding.EncodeToString(ciphertext), nil
 }
 
 // Decrypt AES-GCM encrypted text
-func Decrypt(cipherText, key string) (string, error) {
+func (s *SAesGcm) Decrypt(cipherText string) (string, error) {
 	data, err := base64StdEncoding.DecodeString(cipherText)
 	if err != nil {
 		return "", err
 	}
 
-	block, err := aesNewCipher([]byte(key))
+	block, err := aesNewCipher([]byte(s.key))
 	if err != nil {
 		return "", err
 	}

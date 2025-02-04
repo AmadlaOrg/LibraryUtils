@@ -2,13 +2,15 @@ package dbus
 
 import (
 	"fmt"
-	"github.com/AmadlaOrg/LibraryUtils/encryption"
+	"github.com/AmadlaOrg/LibraryUtils/encryption/aes_gcm"
 	"github.com/godbus/dbus/v5"
 )
 
 type IDBus interface{}
 
-type SDBus struct{}
+type SDBus struct {
+	encryptionAesGcmService aes_gcm.IAesGcm
+}
 
 const secretKey = "32byte-long-secret-key!!!!!" // Ensure key matches Clerk-AWS
 
@@ -29,7 +31,7 @@ func (s *SDBus) Connect() error {
 	}
 
 	// Decrypt received JWT
-	decryptedJWT, err := encryption.Decrypt(encryptedJWT, secretKey)
+	decryptedJWT, err := s.encryptionAesGcmService.Decrypt(encryptedJWT)
 	if err != nil {
 		return fmt.Errorf("decryption error: %v", err)
 	}
