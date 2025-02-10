@@ -1,6 +1,12 @@
 package env
 
+type Var string
+
 const (
-	HeryStoragePath = "HERY_STORAGE_PATH"
-	HeryCollection  = "HERY_COLLECTION"
+	HeryStoragePath Var = "HERY_STORAGE_PATH"
+	HeryCollection  Var = "HERY_COLLECTION"
+)
+
+const (
+	Message = "message"
 )

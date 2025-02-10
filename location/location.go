@@ -2,35 +2,45 @@ package location
 
 import (
 	"fmt"
-	"github.com/AmadlaOrg/LibraryUtils/file"
-	"os"
-	"path/filepath"
-	"runtime"
+	"github.com/adrg/xdg"
 )
 
 type ILocation interface {
-	Paths(collectionName string) (*AbsPaths, error)
+	Paths()
+	/*Paths(collectionName string) (*AbsPaths, error)
 	Main() (string, error)
 	EntityPath(collectionPath, entityRelativePath string) string
 	TmpPaths(collectionName string) (*AbsPaths, error)
 	TmpMain() (string, error)
-	MakePaths(paths AbsPaths) error
+	MakePaths(paths AbsPaths) error*/
 }
 type SLocation struct{}
 
-const perm os.FileMode = os.ModePerm
+//const perm os.FileMode = os.ModePerm
 
-var (
+// For mocking
+/*var (
 	osGetwd      = os.Getwd
 	filepathAbs  = filepath.Abs
 	filepathJoin = filepath.Join
 	fileExists   = file.Exists
 	osMkdirAll   = os.MkdirAll
 	osMkdirTemp  = os.MkdirTemp
-)
+)*/
+
+func (s *SLocation) Paths() {
+	fmt.Println("XDG Config Home:", xdg.ConfigHome) // ~/.config/
+	fmt.Println("XDG Data Home:", xdg.DataHome)     // ~/.local/share/
+	fmt.Println("XDG Cache Home:", xdg.CacheHome)   // ~/.cache/
+	fmt.Println("XDG State Home:", xdg.StateHome)   // ~/.local/state/
+	fmt.Println("XDG Runtime Dir:", xdg.RuntimeDir) // /run/user/$UID/
+
+	fmt.Println("Config Paths:", xdg.ConfigDirs) // Global config search paths
+	fmt.Println("Data Paths:", xdg.DataDirs)     // Global data search paths
+}
 
 // Paths return the absolute paths for the different parts of storage
-func (d *AbsPaths) Paths(collectionName string) (*AbsPaths, error) {
+/*func (d *AbsPaths) Paths(collectionName string) (*AbsPaths, error) {
 	mainPath, err := d.Main()
 	if err != nil {
 		return &AbsPaths{}, err
@@ -181,4 +191,4 @@ func (d *AbsPaths) entitiesPath(collectionPath string) string {
 // cachePath returns the collection cache absolute path
 func (d *AbsPaths) cachePath(collectionName, collectionPath string) string {
 	return filepathJoin(collectionPath, fmt.Sprintf("%s.cache", collectionName))
-}
+}*/
