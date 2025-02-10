@@ -1,14 +1,17 @@
 package location
 
 import (
-	"github.com/AmadlaOrg/LibraryUtils/env"
 	"github.com/adrg/xdg"
 )
 
-const (
-	HeryStoragePath = env.HeryStoragePath
-)
+// Paths contains all the paths
+type Paths struct {
+	SystemPaths          *System
+	ThisApplicationPaths *Application
+	Applications         *[]Application
+}
 
+// System contains the system directories paths
 type System struct {
 	// Home contains the path of the user's home directory.
 	Home string
@@ -84,13 +87,40 @@ type System struct {
 	ApplicationDirs []string
 }
 
-type Amadla struct {
-	Storage    string // e.g.: /home/user/.hery/
+// AmadlaPaths contains all the amadla root paths since all the amadla
+// TODO: Might remove
+type AmadlaPaths struct {
+	/*Storage    string // e.g.: /home/user/.hery/
 	Catalog    string // e.g.: /home/user/.hery/collection/
 	Collection string // e.g.: /home/user/.hery/collection/amadla/
 	Entities   string // e.g.: /home/user/.hery/collection/amadla/entity/
 	Cache      string // e.g.: /home/user/.hery/collection/amadla/amadla.cache
+	*/
 }
 
+// Application contains the specific paths and name/title of an application
 type Application struct {
+	Name  string
+	Paths *ApplicationPaths
+}
+
+// ApplicationPaths contains all the path
+type ApplicationPaths struct {
+	// E.g.: /home/jn/.local/share
+	DataHome string
+
+	// E.g.: /home/jn/.config
+	ConfigHome string
+
+	// E.g.: /home/jn/.local/state
+	StateHome string
+
+	// E.g.: /home/jn/.cache
+	CacheHome string
+
+	// E.g.: /run/user/1000
+	RuntimeDir string
+
+	// E.g.: /home/jn/.local/bin
+	BinHome string
 }

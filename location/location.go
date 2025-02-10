@@ -14,7 +14,9 @@ type ILocation interface {
 	TmpMain() (string, error)
 	MakePaths(paths AbsPaths) error*/
 }
-type SLocation struct{}
+type SLocation struct {
+	paths *Paths
+}
 
 //const perm os.FileMode = os.ModePerm
 
