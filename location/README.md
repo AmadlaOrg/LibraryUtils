@@ -52,9 +52,15 @@ To update mime:
 update-mime-database ~/.local/share/mime/
 ```
 
+#### File extension
 To associate file extension (e.g.: `.hery`):
 ```bash
 xdg-mime default {appName}.desktop application/x-hery
+```
+
+To check the MIME type of e.g.: `.hery` file:
+```bash
+xdg-mime query filetype {appName}.hery
 ```
 
 ## Windows 🪟
