@@ -1,12 +1,13 @@
 package location
 
 import (
-	"fmt"
-	"github.com/adrg/xdg"
+	"path/filepath"
 )
 
 type ILocation interface {
-	Paths()
+	SysPaths() *SystemPaths
+	ThisAppPaths() *ApplicationPaths
+	PluginPath(dirName string) string
 	/*Paths(collectionName string) (*AbsPaths, error)
 	Main() (string, error)
 	EntityPath(collectionPath, entityRelativePath string) string
@@ -30,15 +31,22 @@ type SLocation struct {
 	osMkdirTemp  = os.MkdirTemp
 )*/
 
-func (s *SLocation) Paths() {
-	fmt.Println("XDG Config Home:", xdg.ConfigHome) // ~/.config/
-	fmt.Println("XDG Data Home:", xdg.DataHome)     // ~/.local/share/
-	fmt.Println("XDG Cache Home:", xdg.CacheHome)   // ~/.cache/
-	fmt.Println("XDG State Home:", xdg.StateHome)   // ~/.local/state/
-	fmt.Println("XDG Runtime Dir:", xdg.RuntimeDir) // /run/user/$UID/
+// SysPaths returns struct of all systems paths
+func (s *SLocation) SysPaths() *SystemPaths {
+	return s.paths.SystemPaths
+}
 
-	fmt.Println("Config Paths:", xdg.ConfigDirs) // Global config search paths
-	fmt.Println("Data Paths:", xdg.DataDirs)     // Global data search paths
+// ThisAppPaths returns the struct of all the main application paths
+func (s *SLocation) ThisAppPaths() *ApplicationPaths {
+	return s.paths.ThisApplicationPaths.Paths
+}
+
+// PluginPath with the name of a plugin returns the absolute path to the plugin
+//
+// Params:
+// - 📇 dirName - The name of the directory where the plugin is found
+func (s *SLocation) PluginPath(dirName string) string {
+	return filepath.Join(s.ThisAppPaths().PluginsHome, dirName)
 }
 
 // Paths return the absolute paths for the different parts of storage

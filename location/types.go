@@ -6,13 +6,13 @@ import (
 
 // Paths contains all the paths
 type Paths struct {
-	SystemPaths          *System
+	SystemPaths          *SystemPaths
 	ThisApplicationPaths *Application
 	Applications         *[]Application
 }
 
-// System contains the system directories paths
-type System struct {
+// SystemPaths contains the system directories paths
+type SystemPaths struct {
 	// Home contains the path of the user's home directory.
 	Home string
 
@@ -106,21 +106,70 @@ type Application struct {
 
 // ApplicationPaths contains all the path
 type ApplicationPaths struct {
-	// E.g.: /home/jn/.local/share
+
+	//
+	// Section: Basic
+	//
+
+	// E.g.: /home/user/.local/share/{appName}/
 	DataHome string
 
-	// E.g.: /home/jn/.config
+	// E.g.: /home/user/.config/{appName}/
 	ConfigHome string
 
-	// E.g.: /home/jn/.local/state
+	// E.g.: /home/user/.local/state/{appName}/
 	StateHome string
 
-	// E.g.: /home/jn/.cache
+	// E.g.: /home/user/.cache/{appName}/
 	CacheHome string
 
-	// E.g.: /run/user/1000
+	// E.g.: /run/user/1000/{appName}/
 	RuntimeDir string
 
-	// E.g.: /home/jn/.local/bin
+	// E.g.: /home/user/.local/bin/{appName}
 	BinHome string
+
+	// E.g.: /home/user/.config/{appName}/{appName}.yml
+	ConfigFile string
+
+	// TODO:
+	// E.g.: /home/user/.config/{appName}/plugins.d/
+	PluginsHome string
+
+	// CacheFile is a SQLite3 file
+	// E.g.: /home/user/.config/{appName}/{appName}.cache
+	CacheFile string
+
+	// E.g.: /home/user/.local/share/applications/
+	ApplicationsHome string
+
+	// E.g.: /home/user/.local/share/applications/{appName}.desktop
+	ApplicationsDesktopFile string
+
+	//
+	// Section: Secrets
+	//
+
+	// SecretsHome contains the directories and the files for all the secrets the application might need
+	// TODO: What about the tmp?
+	// TODO: Is this the best place what about run directory for tmp secrets?
+	// TODO: Is there other propositions for this?
+	// E.g.: /home/user/.config/{appName}/secrets/
+	SecretsHome string
+
+	/*
+		chmod 600 ~/.config/amadla/private/*.key ~/.config/amadla/mTLS/*.key
+		chmod 644 ~/.config/amadla/certs/*.crt ~/.config/amadla/mTLS/*.crt
+	*/
+
+	// MTLSHome to be able to connect to `doorman` you need mTLS certification that are assigned temporally by `doorman`
+	// E.g.: /home/user/.config/{appName}/secrets/mTLS/
+	MTLSHome string
+
+	//
+	// Temporary
+	//
+
+	// ln -s ~/.local/lib/amadla/amadla ~/.local/bin/amadla
+
 }

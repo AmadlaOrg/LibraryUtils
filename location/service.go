@@ -1,6 +1,7 @@
 package location
 
 import (
+	"fmt"
 	"path/filepath"
 
 	"github.com/adrg/xdg"
@@ -11,8 +12,9 @@ import (
 // Params:
 // - 📇 appName - Is the of the application (normally all lowercase)
 // - ♻️ version - The version of the application
-func NewLocationService(appName, version string) ILocation {
-	sysPaths := &System{
+// - 💊 pluginTypeName - The plugin type name (e.g.: HERY => entity, doorman => clerk)
+func NewLocationService(appName, version, pluginTypeName string) ILocation {
+	sysPaths := &SystemPaths{
 		Home:            xdg.Home,
 		DataHome:        xdg.DataHome,
 		DataDirs:        xdg.DataDirs,
@@ -68,6 +70,23 @@ func NewLocationService(appName, version string) ILocation {
 					CacheHome:  appCacheHome,
 					RuntimeDir: appRuntimeDir,
 					BinHome:    appBinHome,
+
+					// Custom:
+					ConfigFile: filepath.Join(appConfigHome, fmt.Sprintf("%s.json", appName)),
+
+					// TODO:
+					PluginsHome: filepath.Join(appDataHome, fmt.Sprintf("%s.d", pluginTypeName)),
+
+					// TODO:
+					CacheFile: filepath.Join(appDataHome, fmt.Sprintf("%s.cache", appName)),
+
+					ApplicationsHome: filepath.Join(sysPaths.DataHome, "applications"),
+
+					ApplicationsDesktopFile: filepath.Join(
+						sysPaths.DataHome,
+						"applications",
+						fmt.Sprintf("%s.desktop", appName),
+					),
 				},
 			},
 		},
