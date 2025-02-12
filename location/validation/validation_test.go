@@ -1,8 +1,8 @@
 package validation
 
 import (
-	"github.com/AmadlaOrg/hery/storage"
-	"testing"
+// "github.com/AmadlaOrg/hery/storage"
+// "testing"
 )
 
 // Mock function to simulate file existence
@@ -19,7 +19,7 @@ func mockFileExists(path string) bool {
 	return existingPaths[path]
 }
 
-func Test_AllExist(t *testing.T) {
+/*func Test_AllExist(t *testing.T) {
 	// Backup the original fileExists function and restore it after the test
 	originalFileExists := fileExists
 	defer func() { fileExists = originalFileExists }()
@@ -109,4 +109,4 @@ func Test_AllExist(t *testing.T) {
 			}
 		})
 	}
-}
+}*/

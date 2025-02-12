@@ -87,7 +87,12 @@ type Section struct {
 	Terminal bool `json:"terminal"`
 
 	// Type (default: Application) specifies the type of the entry, defining how it should be handled by the system
-	Type string `json:"type"`
+	//
+	// Supported types:
+	// - Application: Represents a program or script. Requires `Exec=` to specify the command.
+	// - Link: Represents a web link (URL). Requires `URL=` to specify the destination.
+	// - Directory: Represents a virtual folder (used in application menus, not for real directories).
+	Type *Type `json:"type,omitempty"`
 
 	// URL (default: none unless Type=Link then it throws an error) specifies the web address that should be opened
 	// when the shortcut is clicked
@@ -116,12 +121,12 @@ type CommaList string
 type Type string
 
 const (
-	// Application represents a program or script. Requires `Exec=` to specify the command
-	Application Type = "Application"
+	// ApplicationType represents a program or script. Requires `Exec=` to specify the command
+	ApplicationType Type = "Application"
 
-	// Link represents a web link (URL). Requires `URL=` to specify the destination
-	Link Type = "Link"
+	// LinkType represents a web link (URL). Requires `URL=` to specify the destination
+	LinkType Type = "Link"
 
-	// Directory represents a virtual folder (used in application menus, not for real directories)
-	Directory Type = "Directory"
+	// DirectoryType represents a virtual folder (used in application menus, not for real directories)
+	DirectoryType Type = "Directory"
 )
