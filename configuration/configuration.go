@@ -3,10 +3,15 @@ package configuration
 import "github.com/spf13/viper"
 
 type IConfiguration interface {
+	AllPropertyNames() []string
+	AllProperties() map[string]any
 	Set(key string, defaultValue any)
 }
 type SConfiguration struct {
-	appName       string
+	// 📇 appName - Is the of the application (normally all lowercase)
+	appName string
+
+	// 🐍 viperInstance - Is an instance of Viper
 	viperInstance *viper.Viper
 }
 
