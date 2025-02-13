@@ -7,13 +7,13 @@ import (
 	"github.com/adrg/xdg"
 )
 
-// NewLocationService to set up the location service
+// NewLocationService to set up the location service.
 //
 // Params:
-// - 📇 appName - Is the of the application (normally all lowercase)
-// - ♻️ version - The version of the application
-// - 💊 pluginTypeName - The plugin type name (e.g.: HERY => entity, doorman => clerk)
-func NewLocationService(appName, version, pluginTypeName string) ILocation {
+// - 📇 appName - Is the of the application (normally all lowercase).
+// - ♻️ appVersion - The version of the application.
+// - 💊 pluginTypeName - The plugin type name (e.g.: HERY => entity, doorman => clerk).
+func NewLocationService(appName, appVersion, pluginTypeName string) ILocation {
 	sysPaths := &SystemPaths{
 		Home:            xdg.Home,
 		DataHome:        xdg.DataHome,
