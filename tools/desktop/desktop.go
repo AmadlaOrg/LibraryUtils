@@ -2,22 +2,32 @@ package desktop
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
 	"github.com/AmadlaOrg/LibraryUtils/pointer"
 )
 
+// IDesktop 🧩 Is the interface for the NewDesktopService.
 type IDesktop interface {
-	Build(desktop *Desktop) (string, error)
+	Build(desktop *Desktop) (IDesktop, error)
+	Save(dirPath string) error
 }
 
+// SDesktop 🏛️ Is the main structure for the NewDesktopService.
 type SDesktop struct {
+	// 📇 appName - Is the of the application (normally all lowercase).
+	appName string
+
 	builder strings.Builder
 }
 
-const (
-	defaultDesktopSectionName = "Desktop Entry"
+// For mocking 🥸.
+var (
+	osMkdirAll  = os.MkdirAll
+	osWriteFile = os.WriteFile
 )
 
 // Build generates the content for the `.desktop` file format
@@ -25,7 +35,7 @@ const (
 // Params:
 // - 🖥️ desktop:
 // - 📍 location:
-func (service *SDesktop) Build(desktop *Desktop) (string, error) {
+func (service *SDesktop) Build(desktop *Desktop) (IDesktop, error) {
 	var (
 		sectionNames []string
 	)
@@ -54,7 +64,7 @@ func (service *SDesktop) Build(desktop *Desktop) (string, error) {
 		//
 		err := service.processContent("Name", section.Names, true)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 
 		//
@@ -82,7 +92,7 @@ func (service *SDesktop) Build(desktop *Desktop) (string, error) {
 		//
 		err = service.processRequiredProperty("X-AppVersion", section.XAppVersion)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 
 		//
@@ -127,7 +137,7 @@ func (service *SDesktop) Build(desktop *Desktop) (string, error) {
 			//
 			err = service.processRequiredProperty("Exec", &section.Exec)
 			if err != nil {
-				return "", err
+				return nil, err
 			}
 		} else if *section.Type == LinkType {
 			//
@@ -135,7 +145,7 @@ func (service *SDesktop) Build(desktop *Desktop) (string, error) {
 			//
 			err = service.processRequiredProperty("Url", &section.URL)
 			if err != nil {
-				return "", err
+				return nil, err
 			}
 		} else if *section.Type == DirectoryType {
 			// TODO:
@@ -147,7 +157,32 @@ func (service *SDesktop) Build(desktop *Desktop) (string, error) {
 		_ = service.processList("MimeType", section.MimeType, false)
 	}
 
-	return service.builder.String(), nil
+	return service, nil
+}
+
+// Save to a `.desktop` file.
+//
+// Params:
+// - dirPath:
+func (service *SDesktop) Save(dirPath string) error {
+	err := osMkdirAll(dirPath, 0755)
+	if err != nil {
+		return fmt.Errorf("failed to create directory: %w", err)
+	}
+
+	// Construct the file path
+	filePath := filepath.Join(dirPath, fmt.Sprintf("%s.desktop", service.appName))
+
+	// Get the .desktop content
+	desktopContent := service.builder.String()
+
+	// Write to the file
+	err = osWriteFile(filePath, []byte(desktopContent), 0644)
+	if err != nil {
+		return fmt.Errorf("failed to write file: %w", err)
+	}
+
+	return nil
 }
 
 // processContent

@@ -1,5 +1,9 @@
 package desktop
 
+const (
+	defaultDesktopSectionName = "Desktop Entry"
+)
+
 // Desktop contains a list of sections that are in `.desktop`
 type Desktop struct {
 	Sections *[]Section
