@@ -22,9 +22,9 @@ type SystemPaths struct {
 	// Home contains the path of the user's home directory.
 	//
 	// Example:
-	// - 🐧 Linux:
-	// - 🍎 Mac OS X:
-	// - 🪟 Windows:
+	// - 🐧 Linux: /home/username
+	// - 🍎 Mac OS X: /Users/username ($HOME)
+	// - 🪟 Windows: C:\Users\Username (%USERPROFILE%)
 	Home string
 
 	// DataHome defines the base directory relative to which user-specific
@@ -33,9 +33,9 @@ type SystemPaths struct {
 	// a default equal to $HOME/.local/share should be used.
 	//
 	// Example:
-	// - 🐧 Linux:
-	// - 🍎 Mac OS X:
-	// - 🪟 Windows:
+	// - 🐧 Linux: /home/user/.local/share
+	// - 🍎 Mac OS X: /Users/username/Library/Application Support
+	// - 🪟 Windows: C:\Users\Username\AppData\Local (%LOCALAPPDATA%)
 	DataHome string
 
 	// DataDirs defines the preference-ordered set of base directories to
@@ -48,9 +48,9 @@ type SystemPaths struct {
 	// written relative to the DataHome directory, if possible.
 	//
 	// Example:
-	// - 🐧 Linux:
-	// - 🍎 Mac OS X:
-	// - 🪟 Windows:
+	// - 🐧 Linux: /usr/local/share and /usr/share
+	// - 🍎 Mac OS X: /Library/Application Support and /System/Library/Application Support
+	// - 🪟 Windows: C:\ProgramData
 	DataDirs []string
 
 	// ConfigHome defines the base directory relative to which user-specific
@@ -59,9 +59,9 @@ type SystemPaths struct {
 	// not set, a default equal to $HOME/.config should be used.
 	//
 	// Example:
-	// - 🐧 Linux:
-	// - 🍎 Mac OS X:
-	// - 🪟 Windows:
+	// - 🐧 Linux: /home/username/.config
+	// - 🍎 Mac OS X: /Users/username/Library/Preferences
+	// - 🪟 Windows: C:\Users\Username\AppData\Roaming (%APPDATA%)
 	ConfigHome string
 
 	// ConfigDirs defines the preference-ordered set of base directories to
@@ -74,9 +74,9 @@ type SystemPaths struct {
 	// ConfigHome directory, if possible.
 	//
 	// Example:
-	// - 🐧 Linux:
-	// - 🍎 Mac OS X:
-	// - 🪟 Windows:
+	// - 🐧 Linux: /etc/xdg and more
+	// - 🍎 Mac OS X: /Library/Preferences
+	// - 🪟 Windows: C:\ProgramData
 	ConfigDirs []string
 
 	// StateHome defines the base directory relative to which user-specific
@@ -85,9 +85,9 @@ type SystemPaths struct {
 	// a default equal to ~/.local/state should be used.
 	//
 	// Example:
-	// - 🐧 Linux:
-	// - 🍎 Mac OS X:
-	// - 🪟 Windows:
+	// - 🐧 Linux: /home/username/.local/state
+	// - 🍎 Mac OS X: /Users/username/Library/Application Support
+	// - 🪟 Windows: C:\Users\Username\AppData\Local
 	StateHome string
 
 	// CacheHome defines the base directory relative to which user-specific
@@ -96,9 +96,9 @@ type SystemPaths struct {
 	// is not set, a default equal to $HOME/.cache should be used.
 	//
 	// Example:
-	// - 🐧 Linux:
-	// - 🍎 Mac OS X:
-	// - 🪟 Windows:
+	// - 🐧 Linux: /home/username/.cache
+	// - 🍎 Mac OS X: /Users/username/Library/Caches
+	// - 🪟 Windows: C:\Users\Username\AppData\Local\cache
 	CacheHome string
 
 	// RuntimeDir defines the base directory relative to which user-specific
@@ -112,9 +112,9 @@ type SystemPaths struct {
 	// swapped out to disk.
 	//
 	// Example:
-	// - 🐧 Linux:
-	// - 🍎 Mac OS X:
-	// - 🪟 Windows:
+	// - 🐧 Linux: /run/username/1000
+	// - 🍎 Mac OS X: /var/folders/.../T (Temporary directory)
+	// - 🪟 Windows: Usually not set (empty string)
 	RuntimeDir string
 
 	// BinHome defines the base directory relative to which user-specific
@@ -123,19 +123,42 @@ type SystemPaths struct {
 	// not set, a default equal to $HOME/.local/bin should be used.
 	//
 	// Example:
-	// - 🐧 Linux:
-	// - 🍎 Mac OS X:
-	// - 🪟 Windows:
+	// - 🐧 Linux: /home/username/.local/bin
+	// - 🍎 Mac OS X: /usr/local/bin, /Users/username/bin (if exists)
+	// - 🪟 Windows: C:\Users\Username\AppData\Local\Microsoft\WindowsApps
 	BinHome string
 
 	// UserDirs defines the locations of well known user directories.
+	//
+	// Example:
+	// - 🐧 Linux: Uses ~/Documents, ~/Downloads, etc.
+	// - 🍎 Mac OS X: Uses ~/Documents, ~/Downloads, etc.
+	// - 🪟 Windows: Uses SHGetKnownFolderPath, e.g., C:\Users\Username\Documents, C:\Users\Username\Downloads
 	UserDirs xdg.UserDirectories
 
 	// FontDirs defines the common locations where font files are stored.
+	//
+	// Example:
+	// - 🐧 Linux:
+	// - 🍎 Mac OS X: /Library/Fonts, ~/Library/Fonts
+	// - 🪟 Windows: C:\Windows\Fonts, C:\Users\Username\AppData\Local\Microsoft\Windows\Fonts
 	FontDirs []string
 
 	// ApplicationDirs defines the common locations of applications.
+	//
+	// Example:
+	// - 🐧 Linux:
+	// - 🍎 Mac OS X: /Applications, ~/Applications
+	// - 🪟 Windows: C:\ProgramData\Microsoft\Windows\Start Menu\Programs
 	ApplicationDirs []string
+
+	// UserApplicationsHome is a specific
+	//
+	// E.g.:
+	// - 🐧 Linux: /home/username/.local/share/applications/
+	// - 🍎 Mac OS X: None
+	// - 🪟 Windows: None
+	UserApplicationsHome string
 }
 
 // AmadlaPaths contains all the amadla root paths since all the amadla
@@ -165,7 +188,7 @@ type ApplicationPaths struct {
 	// DataHome User-specific data storage for applications.
 	//
 	// Example:
-	// - 🐧 Linux: /home/user/.local/share/{appName}/
+	// - 🐧 Linux: /home/username/.local/share/{appName}
 	// - 🍎 Mac OS X: /Users/username/Library/Application Support
 	// - 🪟 Windows: C:\Users\Username\AppData\Local (%LOCALAPPDATA%)
 	DataHome string
@@ -173,14 +196,14 @@ type ApplicationPaths struct {
 	// ConfigHome User-specific configuration files directory
 	//
 	// E.g.:
-	// - 🐧 Linux: /home/user/.config/{appName}/
+	// - 🐧 Linux: /home/username/.config/{appName}
 	// - 🍎 Mac OS X: /Users/username/Library/Preferences
 	// - 🪟 Windows: C:\Users\Username\AppData\Roaming (%APPDATA%)
 	ConfigHome string
 
 	// StateHome User-specific state files (runtime data, logs, etc.)
 	// E.g.:
-	// - 🐧 Linux: /home/user/.local/state/{appName}/
+	// - 🐧 Linux: /home/username/.local/state/{appName}/
 	// - 🍎 Mac OS X: /Users/username/Library/Application Support
 	// - 🪟 Windows: C:\Users\Username\AppData\Local
 	StateHome string
@@ -188,7 +211,7 @@ type ApplicationPaths struct {
 	// CacheHome User-specific cache storage (temporary files)
 	//
 	// E.g.:
-	// - 🐧 Linux: /home/user/.cache/{appName}/
+	// - 🐧 Linux: /home/username/.cache/{appName}/
 	// - 🍎 Mac OS X: /Users/username/Library/Caches
 	// - 🪟 Windows: C:\Users\Username\AppData\Local\cache
 	CacheHome string
@@ -196,23 +219,23 @@ type ApplicationPaths struct {
 	// RuntimeDir Temporary runtime files (e.g., sockets, PID files)
 	//
 	// E.g.:
-	// - 🐧 Linux: /run/user/1000/{appName}/
+	// - 🐧 Linux: /run/username/1000/{appName}/
 	// - 🍎 Mac OS X: /var/folders/.../T (Temporary directory)
 	// - 🪟 Windows: Usually not set (empty string)
 	RuntimeDir string
 
-	// BinHome Directory for user-installed executable binaries
+	// BinFile Directory for user-installed executable binaries
 	//
 	// E.g.:
-	// - 🐧 Linux: /home/user/.local/bin/{appName}
+	// - 🐧 Linux: /home/username/.local/bin/{appName}
 	// - 🍎 Mac OS X: /usr/local/bin, /Users/username/bin (if exists)
 	// - 🪟 Windows: C:\Users\Username\AppData\Local\Microsoft\WindowsApps
-	BinHome string
+	BinFile string
 
 	// ConfigFile User-specific configuration files directory
 	//
 	// E.g.:
-	// - 🐧 Linux: /home/user/.config/{appName}/{appName}.yml
+	// - 🐧 Linux: /home/username/.config/{appName}/{appName}.yml
 	// - 🍎 Mac OS X: /Users/username/Library/Preferences
 	// - 🪟 Windows: C:\Users\Username\AppData\Roaming (%APPDATA%)
 	ConfigFile string
@@ -221,7 +244,7 @@ type ApplicationPaths struct {
 	// PluginsHome
 	//
 	// E.g.:
-	// - 🐧 Linux: /home/user/.config/{appName}/plugins.d/
+	// - 🐧 Linux: /home/username/.config/{appName}/plugins.d/
 	// - 🍎 Mac OS X:
 	// - 🪟 Windows:
 	PluginsHome string
@@ -229,23 +252,15 @@ type ApplicationPaths struct {
 	// CacheFile is a SQLite3 file
 	//
 	// E.g.:
-	// - 🐧 Linux: /home/user/.config/{appName}/{appName}.cache
+	// - 🐧 Linux: /home/username/.config/{appName}/{appName}.cache
 	// - 🍎 Mac OS X:
 	// - 🪟 Windows:
 	CacheFile string
 
-	// ApplicationsHome
-	//
-	// E.g.:
-	// - 🐧 Linux: /home/user/.local/share/applications/
-	// - 🍎 Mac OS X:
-	// - 🪟 Windows:
-	ApplicationsHome string
-
 	// ApplicationsDesktopFile
 	//
 	// E.g.:
-	// - 🐧 Linux: /home/user/.local/share/applications/{appName}.desktop
+	// - 🐧 Linux: /home/username/.local/share/applications/{appName}.desktop
 	// - 🍎 Mac OS X:
 	// - 🪟 Windows:
 	ApplicationsDesktopFile string
@@ -254,28 +269,12 @@ type ApplicationPaths struct {
 	// Section: Secrets
 	//
 
-	// SecretsHome contains the directories and the files for all the secrets the application might need
-	// TODO: What about the tmp?
-	// TODO: Is this the best place what about run directory for tmp secrets?
-	// TODO: Is there other propositions for this?
-	// E.g.:
-	// - 🐧 Linux: /home/user/.config/{appName}/secrets/
-	// - 🍎 Mac OS X:
-	// - 🪟 Windows:
-	SecretsHome string
+	SecretsPaths *SecretsPaths
 
 	/*
 		chmod 600 ~/.config/amadla/private/*.key ~/.config/amadla/mTLS/*.key
 		chmod 644 ~/.config/amadla/certs/*.crt ~/.config/amadla/mTLS/*.crt
 	*/
-
-	// MTLSHome to be able to connect to `doorman` you need mTLS certification that are assigned temporally by `doorman`
-	//
-	// E.g.:
-	// - 🐧 Linux: /home/user/.config/{appName}/secrets/mTLS/
-	// - 🍎 Mac OS X:
-	// - 🪟 Windows:
-	MTLSHome string
 
 	//
 	// Temporary
@@ -284,3 +283,65 @@ type ApplicationPaths struct {
 	// ln -s ~/.local/lib/amadla/amadla ~/.local/bin/amadla
 
 }
+
+// SecretsPaths
+type SecretsPaths struct {
+	// SecretsHome contains the directories and the files for all the secrets the application might need
+	// TODO: What about the tmp?
+	// TODO: Is this the best place what about run directory for tmp secrets?
+	// TODO: Is there other propositions for this?
+	// E.g.:
+	// - 🐧 Linux: /home/username/.config/{appName}/secrets/
+	// - 🍎 Mac OS X:
+	// - 🪟 Windows:
+	SecretsHome string
+
+	// MTLSHome to be able to connect to `doorman` you need mTLS certification that are assigned temporally by `doorman`
+	//
+	// E.g.:
+	// - 🐧 Linux: /home/user/.config/{appName}/secrets/mTLS/
+	// - 🍎 Mac OS X:
+	// - 🪟 Windows:
+	MTLSHome string
+}
+
+type PathName string
+
+const (
+	Home                 PathName = "Home"
+	DataHome             PathName = "DataHome"
+	DataDirs             PathName = "DataDirs"
+	ConfigHome           PathName = "ConfigHome"
+	ConfigDirs           PathName = "ConfigDirs"
+	StateHome            PathName = "StateHome"
+	CacheHome            PathName = "CacheHome"
+	RuntimeDir           PathName = "RuntimeDir"
+	BinHome              PathName = "BinHome"
+	UserDirs             PathName = "UserDirs"
+	FontDirs             PathName = "FontDirs"
+	ApplicationDirs      PathName = "ApplicationDirs"
+	UserApplicationsHome PathName = "UserApplicationsHome"
+)
+
+type AppPathName string
+
+const (
+	AppDataHome                AppPathName = "AppDataHome"
+	AppConfigHome              AppPathName = "AppConfigHome"
+	AppStateHome               AppPathName = "AppStateHome"
+	AppCacheHome               AppPathName = "AppCacheHome"
+	AppRuntimeDir              AppPathName = "AppRuntimeDir"
+	AppBinFile                 AppPathName = "AppBinFile"
+	AppConfigFile              AppPathName = "AppConfigFile"
+	AppPluginsHome             AppPathName = "AppPluginsHome"
+	AppCacheFile               AppPathName = "AppCacheFile"
+	ApplicationsHome           AppPathName = "ApplicationsHome"
+	AppApplicationsDesktopFile AppPathName = "ApplicationsDesktopFile"
+)
+
+type AppSecretsPathName string
+
+const (
+	AppSecretsHome AppSecretsPathName = "AppSecretsHome"
+	MTLSHome       AppSecretsPathName = "MTLSHome"
+)

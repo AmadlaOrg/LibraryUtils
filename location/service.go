@@ -16,18 +16,19 @@ import (
 // - 💊 pluginTypeName - The plugin type name (e.g.: HERY => entity, doorman => clerk).
 func NewLocationService(appName, appVersion, pluginTypeName string) ILocation {
 	sysPaths := &SystemPaths{
-		Home:            xdg.Home,
-		DataHome:        xdg.DataHome,
-		DataDirs:        xdg.DataDirs,
-		ConfigHome:      xdg.ConfigHome,
-		ConfigDirs:      xdg.ConfigDirs,
-		StateHome:       xdg.StateHome,
-		CacheHome:       xdg.CacheHome,
-		RuntimeDir:      xdg.RuntimeDir,
-		BinHome:         xdg.BinHome,
-		UserDirs:        xdg.UserDirs,
-		FontDirs:        xdg.FontDirs,
-		ApplicationDirs: xdg.ApplicationDirs,
+		Home:                 xdg.Home,
+		DataHome:             xdg.DataHome,
+		DataDirs:             xdg.DataDirs,
+		ConfigHome:           xdg.ConfigHome,
+		ConfigDirs:           xdg.ConfigDirs,
+		StateHome:            xdg.StateHome,
+		CacheHome:            xdg.CacheHome,
+		RuntimeDir:           xdg.RuntimeDir,
+		BinHome:              xdg.BinHome,
+		UserDirs:             xdg.UserDirs,
+		FontDirs:             xdg.FontDirs,
+		ApplicationDirs:      xdg.ApplicationDirs,
+		UserApplicationsHome: filepath.Join(xdg.DataHome, "applications"),
 	}
 
 	// TODO: What happens when there is no path set
@@ -70,7 +71,7 @@ func NewLocationService(appName, appVersion, pluginTypeName string) ILocation {
 					StateHome:  appStateHome,
 					CacheHome:  appCacheHome,
 					RuntimeDir: appRuntimeDir,
-					BinHome:    appBinHome,
+					BinFile:    appBinHome,
 
 					// Custom:
 					ConfigFile: filepath.Join(appConfigHome, fmt.Sprintf("%s.json", appName)),
@@ -80,8 +81,6 @@ func NewLocationService(appName, appVersion, pluginTypeName string) ILocation {
 
 					// TODO:
 					CacheFile: filepath.Join(appDataHome, fmt.Sprintf("%s.cache", appName)),
-
-					ApplicationsHome: filepath.Join(sysPaths.DataHome, "applications"),
 
 					ApplicationsDesktopFile: filepath.Join(
 						sysPaths.DataHome,
