@@ -1,3 +1,4 @@
+// Package location 📍
 package location
 
 import (

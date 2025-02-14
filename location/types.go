@@ -1,25 +1,41 @@
+// Package location 📍
 package location
 
 import (
 	"github.com/adrg/xdg"
 )
 
-// Paths contains all the paths
+// Paths 🛣️ contains all the paths
 type Paths struct {
-	SystemPaths          *SystemPaths
+	// 🤖 SystemPaths contains the struct of the system paths
+	SystemPaths *SystemPaths
+
+	// 🚩 ThisApplicationPaths
 	ThisApplicationPaths *Application
-	Applications         *[]Application
+
+	// 🖧 Applications
+	Applications *[]Application
 }
 
 // SystemPaths contains the system directories paths
 type SystemPaths struct {
 	// Home contains the path of the user's home directory.
+	//
+	// Example:
+	// - 🐧 Linux:
+	// - 🍎 Mac OS X:
+	// - 🪟 Windows:
 	Home string
 
 	// DataHome defines the base directory relative to which user-specific
 	// data files should be stored. This directory is defined by the
 	// $XDG_DATA_HOME environment variable. If the variable is not set,
 	// a default equal to $HOME/.local/share should be used.
+	//
+	// Example:
+	// - 🐧 Linux:
+	// - 🍎 Mac OS X:
+	// - 🪟 Windows:
 	DataHome string
 
 	// DataDirs defines the preference-ordered set of base directories to
@@ -30,12 +46,22 @@ type SystemPaths struct {
 	// DataHome directory is considered more important than any of the
 	// directories defined by DataDirs. Therefore, user data files should be
 	// written relative to the DataHome directory, if possible.
+	//
+	// Example:
+	// - 🐧 Linux:
+	// - 🍎 Mac OS X:
+	// - 🪟 Windows:
 	DataDirs []string
 
 	// ConfigHome defines the base directory relative to which user-specific
 	// configuration files should be written. This directory is defined by
 	// the $XDG_CONFIG_HOME environment variable. If the variable is
 	// not set, a default equal to $HOME/.config should be used.
+	//
+	// Example:
+	// - 🐧 Linux:
+	// - 🍎 Mac OS X:
+	// - 🪟 Windows:
 	ConfigHome string
 
 	// ConfigDirs defines the preference-ordered set of base directories to
@@ -46,18 +72,33 @@ type SystemPaths struct {
 	// more important than any of the directories defined by ConfigDirs.
 	// Therefore, user config files should be written relative to the
 	// ConfigHome directory, if possible.
+	//
+	// Example:
+	// - 🐧 Linux:
+	// - 🍎 Mac OS X:
+	// - 🪟 Windows:
 	ConfigDirs []string
 
 	// StateHome defines the base directory relative to which user-specific
 	// state files should be stored. This directory is defined by the
 	// $XDG_STATE_HOME environment variable. If the variable is not set,
 	// a default equal to ~/.local/state should be used.
+	//
+	// Example:
+	// - 🐧 Linux:
+	// - 🍎 Mac OS X:
+	// - 🪟 Windows:
 	StateHome string
 
 	// CacheHome defines the base directory relative to which user-specific
 	// non-essential (cached) data should be written. This directory is
 	// defined by the $XDG_CACHE_HOME environment variable. If the variable
 	// is not set, a default equal to $HOME/.cache should be used.
+	//
+	// Example:
+	// - 🐧 Linux:
+	// - 🍎 Mac OS X:
+	// - 🪟 Windows:
 	CacheHome string
 
 	// RuntimeDir defines the base directory relative to which user-specific
@@ -69,12 +110,22 @@ type SystemPaths struct {
 	// and synchronization purposes and should not place larger files in it,
 	// since it might reside in runtime memory and cannot necessarily be
 	// swapped out to disk.
+	//
+	// Example:
+	// - 🐧 Linux:
+	// - 🍎 Mac OS X:
+	// - 🪟 Windows:
 	RuntimeDir string
 
 	// BinHome defines the base directory relative to which user-specific
 	// binary files should be written. This directory is defined by
 	// the non-standard $XDG_BIN_HOME environment variable. If the variable is
 	// not set, a default equal to $HOME/.local/bin should be used.
+	//
+	// Example:
+	// - 🐧 Linux:
+	// - 🍎 Mac OS X:
+	// - 🪟 Windows:
 	BinHome string
 
 	// UserDirs defines the locations of well known user directories.
@@ -111,39 +162,92 @@ type ApplicationPaths struct {
 	// Section: Basic
 	//
 
-	// E.g.: /home/user/.local/share/{appName}/
+	// DataHome User-specific data storage for applications.
+	//
+	// Example:
+	// - 🐧 Linux: /home/user/.local/share/{appName}/
+	// - 🍎 Mac OS X: /Users/username/Library/Application Support
+	// - 🪟 Windows: C:\Users\Username\AppData\Local (%LOCALAPPDATA%)
 	DataHome string
 
-	// E.g.: /home/user/.config/{appName}/
+	// ConfigHome User-specific configuration files directory
+	//
+	// E.g.:
+	// - 🐧 Linux: /home/user/.config/{appName}/
+	// - 🍎 Mac OS X: /Users/username/Library/Preferences
+	// - 🪟 Windows: C:\Users\Username\AppData\Roaming (%APPDATA%)
 	ConfigHome string
 
-	// E.g.: /home/user/.local/state/{appName}/
+	// StateHome User-specific state files (runtime data, logs, etc.)
+	// E.g.:
+	// - 🐧 Linux: /home/user/.local/state/{appName}/
+	// - 🍎 Mac OS X: /Users/username/Library/Application Support
+	// - 🪟 Windows: C:\Users\Username\AppData\Local
 	StateHome string
 
-	// E.g.: /home/user/.cache/{appName}/
+	// CacheHome User-specific cache storage (temporary files)
+	//
+	// E.g.:
+	// - 🐧 Linux: /home/user/.cache/{appName}/
+	// - 🍎 Mac OS X: /Users/username/Library/Caches
+	// - 🪟 Windows: C:\Users\Username\AppData\Local\cache
 	CacheHome string
 
-	// E.g.: /run/user/1000/{appName}/
+	// RuntimeDir Temporary runtime files (e.g., sockets, PID files)
+	//
+	// E.g.:
+	// - 🐧 Linux: /run/user/1000/{appName}/
+	// - 🍎 Mac OS X: /var/folders/.../T (Temporary directory)
+	// - 🪟 Windows: Usually not set (empty string)
 	RuntimeDir string
 
-	// E.g.: /home/user/.local/bin/{appName}
+	// BinHome Directory for user-installed executable binaries
+	//
+	// E.g.:
+	// - 🐧 Linux: /home/user/.local/bin/{appName}
+	// - 🍎 Mac OS X: /usr/local/bin, /Users/username/bin (if exists)
+	// - 🪟 Windows: C:\Users\Username\AppData\Local\Microsoft\WindowsApps
 	BinHome string
 
-	// E.g.: /home/user/.config/{appName}/{appName}.yml
+	// ConfigFile User-specific configuration files directory
+	//
+	// E.g.:
+	// - 🐧 Linux: /home/user/.config/{appName}/{appName}.yml
+	// - 🍎 Mac OS X: /Users/username/Library/Preferences
+	// - 🪟 Windows: C:\Users\Username\AppData\Roaming (%APPDATA%)
 	ConfigFile string
 
 	// TODO:
-	// E.g.: /home/user/.config/{appName}/plugins.d/
+	// PluginsHome
+	//
+	// E.g.:
+	// - 🐧 Linux: /home/user/.config/{appName}/plugins.d/
+	// - 🍎 Mac OS X:
+	// - 🪟 Windows:
 	PluginsHome string
 
 	// CacheFile is a SQLite3 file
-	// E.g.: /home/user/.config/{appName}/{appName}.cache
+	//
+	// E.g.:
+	// - 🐧 Linux: /home/user/.config/{appName}/{appName}.cache
+	// - 🍎 Mac OS X:
+	// - 🪟 Windows:
 	CacheFile string
 
-	// E.g.: /home/user/.local/share/applications/
+	// ApplicationsHome
+	//
+	// E.g.:
+	// - 🐧 Linux: /home/user/.local/share/applications/
+	// - 🍎 Mac OS X:
+	// - 🪟 Windows:
 	ApplicationsHome string
 
-	// E.g.: /home/user/.local/share/applications/{appName}.desktop
+	// ApplicationsDesktopFile
+	//
+	// E.g.:
+	// - 🐧 Linux: /home/user/.local/share/applications/{appName}.desktop
+	// - 🍎 Mac OS X:
+	// - 🪟 Windows:
 	ApplicationsDesktopFile string
 
 	//
@@ -154,7 +258,10 @@ type ApplicationPaths struct {
 	// TODO: What about the tmp?
 	// TODO: Is this the best place what about run directory for tmp secrets?
 	// TODO: Is there other propositions for this?
-	// E.g.: /home/user/.config/{appName}/secrets/
+	// E.g.:
+	// - 🐧 Linux: /home/user/.config/{appName}/secrets/
+	// - 🍎 Mac OS X:
+	// - 🪟 Windows:
 	SecretsHome string
 
 	/*
@@ -163,7 +270,11 @@ type ApplicationPaths struct {
 	*/
 
 	// MTLSHome to be able to connect to `doorman` you need mTLS certification that are assigned temporally by `doorman`
-	// E.g.: /home/user/.config/{appName}/secrets/mTLS/
+	//
+	// E.g.:
+	// - 🐧 Linux: /home/user/.config/{appName}/secrets/mTLS/
+	// - 🍎 Mac OS X:
+	// - 🪟 Windows:
 	MTLSHome string
 
 	//

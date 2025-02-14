@@ -5,7 +5,7 @@ import (
 )
 
 type ILocation interface {
-	SysPaths() *SystemPaths
+	SystemPaths() *SystemPaths
 	ThisAppPaths() *ApplicationPaths
 	PluginPath(dirName string) string
 	/*Paths(collectionName string) (*AbsPaths, error)
@@ -31,8 +31,8 @@ type SLocation struct {
 	osMkdirTemp  = os.MkdirTemp
 )*/
 
-// SysPaths returns struct of all systems paths
-func (s *SLocation) SysPaths() *SystemPaths {
+// SystemPaths returns struct of all systems paths
+func (s *SLocation) SystemPaths() *SystemPaths {
 	return s.paths.SystemPaths
 }
 
