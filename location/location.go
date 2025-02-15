@@ -1,7 +1,10 @@
 package location
 
 import (
+	"fmt"
+	"github.com/adrg/xdg"
 	"path/filepath"
+	"runtime"
 )
 
 type ILocation interface {
@@ -16,7 +19,9 @@ type ILocation interface {
 	MakePaths(paths AbsPaths) error*/
 }
 type SLocation struct {
-	paths *Paths
+	appName    string
+	appVersion string
+	paths      *Paths
 }
 
 //const perm os.FileMode = os.ModePerm
@@ -31,22 +36,96 @@ type SLocation struct {
 	osMkdirTemp  = os.MkdirTemp
 )*/
 
+var (
+	xdgCacheFile   = xdg.CacheFile
+	xdgConfigFile  = xdg.ConfigFile
+	xdgRuntimeFile = xdg.RuntimeFile
+	xdgDataFile    = xdg.DataFile
+)
+
+// setSystemPaths
+func (service *SLocation) setSystemPaths() {
+	sysPaths := &SystemPaths{
+		Home:            xdg.Home,
+		DataHome:        xdg.DataHome,
+		DataDirs:        xdg.DataDirs,
+		ConfigHome:      xdg.ConfigHome,
+		ConfigDirs:      xdg.ConfigDirs,
+		StateHome:       xdg.StateHome,
+		CacheHome:       xdg.CacheHome,
+		RuntimeDir:      xdg.RuntimeDir,
+		BinHome:         xdg.BinHome,
+		UserDirs:        xdg.UserDirs,
+		FontDirs:        xdg.FontDirs,
+		ApplicationDirs: xdg.ApplicationDirs,
+	}
+
+	if runtime.GOOS != "windows" &&
+		runtime.GOOS != "darwin" &&
+		runtime.GOOS != "plan9" {
+		sysPaths.UserLocalHome = filepath.Join(xdg.DataHome, ".local")
+		sysPaths.UserApplicationsHome = filepath.Join(xdg.DataHome, "applications")
+	}
+
+	service.paths.SystemPaths = sysPaths
+
+	relPath := fmt.Sprintf("%s/%s", service.appName, service.appName)
+
+	filePath, err := xdgCacheFile(relPath + ".cache")
+	if err != nil {
+		return
+	}
+
+	file, err := xdgConfigFile(relPath + ".yaml")
+	if err != nil {
+		return
+	}
+
+	tmpSecrets, err := xdgRuntimeFile(relPath + "/secrets")
+	if err != nil {
+		return
+	}
+
+	tmpSecretsMTls, err := xdgRuntimeFile(relPath + "/secrets/mTLS")
+	if err != nil {
+		return
+	}
+
+	dataFile, err := xdgDataFile(relPath)
+	if err != nil {
+		return
+	}
+
+	service.paths.ThisApplicationPaths.Name = service.appName
+	service.paths.ThisApplicationPaths.Paths.SecretsPaths.SecretsHome = tmpSecrets
+	service.paths.ThisApplicationPaths.Paths.SecretsPaths.SecretsHome = tmpSecretsMTls
+	//service.paths.ThisApplicationPaths.Paths.
+
+	/*xdg.RuntimeFile(relPath + "socket")
+
+	xdg.SearchCacheFile()
+	xdg.SearchConfigFile()
+	xdg.SearchDataFile()
+	xdg.SearchRuntimeFile()
+	xdg.SearchStateFile()*/
+}
+
 // SystemPaths returns struct of all systems paths
-func (s *SLocation) SystemPaths() *SystemPaths {
-	return s.paths.SystemPaths
+func (service *SLocation) SystemPaths() *SystemPaths {
+	return service.paths.SystemPaths
 }
 
 // ThisAppPaths returns the struct of all the main application paths
-func (s *SLocation) ThisAppPaths() *ApplicationPaths {
-	return s.paths.ThisApplicationPaths.Paths
+func (service *SLocation) ThisAppPaths() *ApplicationPaths {
+	return service.paths.ThisApplicationPaths.Paths
 }
 
 // PluginPath with the name of a plugin returns the absolute path to the plugin
 //
 // Params:
 // - 📇 dirName - The name of the directory where the plugin is found
-func (s *SLocation) PluginPath(dirName string) string {
-	return filepath.Join(s.ThisAppPaths().PluginsHome, dirName)
+func (service *SLocation) PluginPath(dirName string) string {
+	return filepath.Join(service.ThisAppPaths().PluginsHome, dirName)
 }
 
 // Paths return the absolute paths for the different parts of storage

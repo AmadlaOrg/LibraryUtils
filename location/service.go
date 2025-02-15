@@ -4,8 +4,6 @@ package location
 import (
 	"fmt"
 	"path/filepath"
-
-	"github.com/adrg/xdg"
 )
 
 // NewLocationService to set up the location service.
@@ -15,25 +13,19 @@ import (
 // - ♻️ appVersion - The version of the application.
 // - 💊 pluginTypeName - The plugin type name (e.g.: HERY => entity, doorman => clerk).
 func NewLocationService(appName, appVersion, pluginTypeName string) ILocation {
-	sysPaths := &SystemPaths{
-		Home:                 xdg.Home,
-		DataHome:             xdg.DataHome,
-		DataDirs:             xdg.DataDirs,
-		ConfigHome:           xdg.ConfigHome,
-		ConfigDirs:           xdg.ConfigDirs,
-		StateHome:            xdg.StateHome,
-		CacheHome:            xdg.CacheHome,
-		RuntimeDir:           xdg.RuntimeDir,
-		BinHome:              xdg.BinHome,
-		UserDirs:             xdg.UserDirs,
-		FontDirs:             xdg.FontDirs,
-		ApplicationDirs:      xdg.ApplicationDirs,
-		UserApplicationsHome: filepath.Join(xdg.DataHome, "applications"),
+	serviceLocation := &SLocation{
+		appName:    appName,
+		appVersion: appVersion,
 	}
+
+	// Set
+	serviceLocation.setSystemPaths()
+
+	sysPaths := serviceLocation.paths.SystemPaths
 
 	// TODO: What happens when there is no path set
 	// TODO: There needs to be a check for each of these paths... Maybe use `mkdir -p`
-	if sysPaths.DataHome == "" {
+	/*if sysPaths.DataHome == "" {
 	}
 
 	if sysPaths.ConfigHome == "" {
@@ -49,7 +41,7 @@ func NewLocationService(appName, appVersion, pluginTypeName string) ILocation {
 	}
 
 	if sysPaths.BinHome == "" {
-	}
+	}*/
 
 	appDataHome := filepath.Join(sysPaths.DataHome, appName)
 	appConfigHome := filepath.Join(sysPaths.ConfigHome, appName)

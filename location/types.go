@@ -27,13 +27,21 @@ type SystemPaths struct {
 	// - 🪟 Windows: C:\Users\Username (%USERPROFILE%)
 	Home string
 
+	// UserLocalHome contains the path of the user's .local directory.
+	//
+	// Example:
+	// - 🐧 Linux: /home/username/.local
+	// - 🍎 Mac OS X: None
+	// - 🪟 Windows: None
+	UserLocalHome string
+
 	// DataHome defines the base directory relative to which user-specific
 	// data files should be stored. This directory is defined by the
 	// $XDG_DATA_HOME environment variable. If the variable is not set,
 	// a default equal to $HOME/.local/share should be used.
 	//
 	// Example:
-	// - 🐧 Linux: /home/user/.local/share
+	// - 🐧 Linux: /home/username/.local/share
 	// - 🍎 Mac OS X: /Users/username/Library/Application Support
 	// - 🪟 Windows: C:\Users\Username\AppData\Local (%LOCALAPPDATA%)
 	DataHome string
@@ -147,7 +155,7 @@ type SystemPaths struct {
 	// ApplicationDirs defines the common locations of applications.
 	//
 	// Example:
-	// - 🐧 Linux:
+	// - 🐧 Linux: /home/username/.local/share/applications, /usr/local/share/applications, /usr/share/applications, etc.
 	// - 🍎 Mac OS X: /Applications, ~/Applications
 	// - 🪟 Windows: C:\ProgramData\Microsoft\Windows\Start Menu\Programs
 	ApplicationDirs []string
