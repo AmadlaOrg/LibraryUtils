@@ -1,25 +1,24 @@
 // Package location 📍
 package location
 
-import (
-	"fmt"
-	"path/filepath"
-)
-
 // NewLocationService to set up the location service.
 //
 // Params:
 // - 📇 appName - Is the of the application (normally all lowercase).
 // - ♻️ appVersion - The version of the application.
-// - 💊 pluginTypeName - The plugin type name (e.g.: HERY => entity, doorman => clerk).
-func NewLocationService(appName, appVersion, pluginTypeName string) ILocation {
+// - 💊 pluginTypeName - The plugin type names (e.g.: HERY => entity, doorman => clerk).
+func NewLocationService(appName AppName, appVersion AppVersion, pluginTypeNames PluginTypeNames) (ILocation, error) {
 	serviceLocation := &SLocation{
-		appName:    appName,
-		appVersion: appVersion,
+		appName:         appName,
+		appVersion:      appVersion,
+		pluginTypeNames: pluginTypeNames,
 	}
 
 	// Set
-	serviceLocation.setSystemPaths()
+	err := serviceLocation.setSystemPaths()
+	if err != nil {
+		return nil, err
+	}
 
 	sysPaths := serviceLocation.paths.SystemPaths
 
@@ -43,12 +42,12 @@ func NewLocationService(appName, appVersion, pluginTypeName string) ILocation {
 	if sysPaths.BinHome == "" {
 	}*/
 
-	appDataHome := filepath.Join(sysPaths.DataHome, appName)
+	/*appDataHome := filepath.Join(sysPaths.DataHome, appName)
 	appConfigHome := filepath.Join(sysPaths.ConfigHome, appName)
 	appStateHome := filepath.Join(sysPaths.StateHome, appName)
 	appCacheHome := filepath.Join(sysPaths.CacheHome, appName)
 	appRuntimeDir := filepath.Join(sysPaths.RuntimeDir, appName)
-	appBinHome := filepath.Join(sysPaths.BinHome, appName)
+	appBinHome := filepath.Join(sysPaths.BinHome, appName)*/
 
 	// TODO: Validate them
 
@@ -57,7 +56,7 @@ func NewLocationService(appName, appVersion, pluginTypeName string) ILocation {
 			SystemPaths: sysPaths,
 			ThisApplicationPaths: &Application{
 				Name: appName,
-				Paths: &ApplicationPaths{
+				/*Paths: &ApplicationPaths{
 					DataHome:   appDataHome,
 					ConfigHome: appConfigHome,
 					StateHome:  appStateHome,
@@ -79,8 +78,8 @@ func NewLocationService(appName, appVersion, pluginTypeName string) ILocation {
 						"applications",
 						fmt.Sprintf("%s.desktop", appName),
 					),
-				},
+				},*/
 			},
 		},
-	}
+	}, nil
 }

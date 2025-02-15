@@ -5,6 +5,12 @@ import (
 	"github.com/adrg/xdg"
 )
 
+// PluginTypeNames
+// TODO: Should be moved to the plugin package
+type PluginTypeNames []string
+type AppName string
+type AppVersion string
+
 // Paths 🛣️ contains all the paths
 type Paths struct {
 	// 🤖 SystemPaths contains the struct of the system paths
@@ -182,13 +188,13 @@ type AmadlaPaths struct {
 
 // Application contains the specific paths and name/title of an application
 type Application struct {
-	Name  string
-	Paths *ApplicationPaths
+	Name            AppName
+	PluginTypeNames PluginTypeNames
+	Paths           *ApplicationPaths
 }
 
 // ApplicationPaths contains all the path
 type ApplicationPaths struct {
-
 	//
 	// Section: Basic
 	//
@@ -248,14 +254,13 @@ type ApplicationPaths struct {
 	// - 🪟 Windows: C:\Users\Username\AppData\Roaming (%APPDATA%)
 	ConfigFile string
 
-	// TODO:
 	// PluginsHome
 	//
 	// E.g.:
-	// - 🐧 Linux: /home/username/.config/{appName}/plugins.d/
+	// - 🐧 Linux: /home/username/.local/share/{appName}/{pluginTypeName}.d/
 	// - 🍎 Mac OS X:
 	// - 🪟 Windows:
-	PluginsHome string
+	PluginsHome map[string]string
 
 	// CacheFile is a SQLite3 file
 	//
@@ -274,27 +279,10 @@ type ApplicationPaths struct {
 	ApplicationsDesktopFile string
 
 	//
-	// Section: Secrets
+	// Secrets
 	//
 
-	SecretsPaths *SecretsPaths
-
-	/*
-		chmod 600 ~/.config/amadla/private/*.key ~/.config/amadla/mTLS/*.key
-		chmod 644 ~/.config/amadla/certs/*.crt ~/.config/amadla/mTLS/*.crt
-	*/
-
-	//
-	// Temporary
-	//
-
-	// ln -s ~/.local/lib/amadla/amadla ~/.local/bin/amadla
-
-}
-
-// SecretsPaths
-type SecretsPaths struct {
-	// SecretsHome contains the directories and the files for all the secrets the application might need
+	// Home contains the directories and the files for all the secrets the application might need
 	// TODO: What about the tmp?
 	// TODO: Is this the best place what about run directory for tmp secrets?
 	// TODO: Is there other propositions for this?
@@ -306,50 +294,17 @@ type SecretsPaths struct {
 
 	// MTLSHome to be able to connect to `doorman` you need mTLS certification that are assigned temporally by `doorman`
 	//
+	// Note:
+	//
+	// chmod 600 ~/.config/amadla/private/*.key ~/.config/amadla/mTLS/*.key
+	// chmod 644 ~/.config/amadla/certs/*.crt ~/.config/amadla/mTLS/*.crt
+	//
 	// E.g.:
 	// - 🐧 Linux: /home/user/.config/{appName}/secrets/mTLS/
 	// - 🍎 Mac OS X:
 	// - 🪟 Windows:
 	MTLSHome string
+
+	// ln -s ~/.local/lib/amadla/amadla ~/.local/bin/amadla
+
 }
-
-type PathName string
-
-const (
-	Home                 PathName = "Home"
-	DataHome             PathName = "DataHome"
-	DataDirs             PathName = "DataDirs"
-	ConfigHome           PathName = "ConfigHome"
-	ConfigDirs           PathName = "ConfigDirs"
-	StateHome            PathName = "StateHome"
-	CacheHome            PathName = "CacheHome"
-	RuntimeDir           PathName = "RuntimeDir"
-	BinHome              PathName = "BinHome"
-	UserDirs             PathName = "UserDirs"
-	FontDirs             PathName = "FontDirs"
-	ApplicationDirs      PathName = "ApplicationDirs"
-	UserApplicationsHome PathName = "UserApplicationsHome"
-)
-
-type AppPathName string
-
-const (
-	AppDataHome                AppPathName = "AppDataHome"
-	AppConfigHome              AppPathName = "AppConfigHome"
-	AppStateHome               AppPathName = "AppStateHome"
-	AppCacheHome               AppPathName = "AppCacheHome"
-	AppRuntimeDir              AppPathName = "AppRuntimeDir"
-	AppBinFile                 AppPathName = "AppBinFile"
-	AppConfigFile              AppPathName = "AppConfigFile"
-	AppPluginsHome             AppPathName = "AppPluginsHome"
-	AppCacheFile               AppPathName = "AppCacheFile"
-	ApplicationsHome           AppPathName = "ApplicationsHome"
-	AppApplicationsDesktopFile AppPathName = "ApplicationsDesktopFile"
-)
-
-type AppSecretsPathName string
-
-const (
-	AppSecretsHome AppSecretsPathName = "AppSecretsHome"
-	MTLSHome       AppSecretsPathName = "MTLSHome"
-)

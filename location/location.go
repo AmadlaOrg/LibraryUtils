@@ -1,10 +1,14 @@
 package location
 
 import (
+	"errors"
 	"fmt"
-	"github.com/adrg/xdg"
+	"os"
 	"path/filepath"
 	"runtime"
+
+	"github.com/AmadlaOrg/LibraryUtils/file"
+	"github.com/adrg/xdg"
 )
 
 type ILocation interface {
@@ -19,9 +23,10 @@ type ILocation interface {
 	MakePaths(paths AbsPaths) error*/
 }
 type SLocation struct {
-	appName    string
-	appVersion string
-	paths      *Paths
+	appName         AppName
+	appVersion      AppVersion
+	pluginTypeNames PluginTypeNames
+	paths           *Paths
 }
 
 //const perm os.FileMode = os.ModePerm
@@ -44,7 +49,11 @@ var (
 )
 
 // setSystemPaths
-func (service *SLocation) setSystemPaths() {
+func (service *SLocation) setSystemPaths() error {
+	service.paths.ThisApplicationPaths.Name = service.appName
+	//
+	// System
+	//
 	sysPaths := &SystemPaths{
 		Home:            xdg.Home,
 		DataHome:        xdg.DataHome,
@@ -65,49 +74,77 @@ func (service *SLocation) setSystemPaths() {
 		runtime.GOOS != "plan9" {
 		sysPaths.UserLocalHome = filepath.Join(xdg.DataHome, ".local")
 		sysPaths.UserApplicationsHome = filepath.Join(xdg.DataHome, "applications")
+
+		if !file.Exists(sysPaths.UserApplicationsHome) {
+			var existApplicationsPath string
+			for _, applicationsPath := range xdg.ApplicationDirs {
+				if file.Exists(applicationsPath) {
+					existApplicationsPath = applicationsPath
+					break
+				}
+			}
+			if existApplicationsPath != "" {
+				sysPaths.UserApplicationsHome = existApplicationsPath
+			} else {
+				return errors.New("applications directory not found")
+			}
+		}
 	}
 
 	service.paths.SystemPaths = sysPaths
 
-	relPath := fmt.Sprintf("%s/%s", service.appName, service.appName)
+	relFilePath := fmt.Sprintf("%s/%s", service.appName, service.appName)
 
-	filePath, err := xdgCacheFile(relPath + ".cache")
+	dataDir, err := xdgDataFile(string(service.appName))
 	if err != nil {
-		return
+		return errors.Join(fmt.Errorf(`xdg.DataFile was unable to set "%s" path`, dataDir), err)
 	}
+	service.paths.ThisApplicationPaths.Paths.DataHome = dataDir
 
-	file, err := xdgConfigFile(relPath + ".yaml")
+	configFile, err := xdgConfigFile(relFilePath + ".yaml")
 	if err != nil {
-		return
+		return errors.Join(fmt.Errorf(`xdg.ConfigFile was unable to set "%s" path`, configFile), err)
 	}
+	service.paths.ThisApplicationPaths.Paths.ConfigFile = filepath.Dir(configFile)
 
-	tmpSecrets, err := xdgRuntimeFile(relPath + "/secrets")
+	stateDir, err := xdg.StateFile(string(service.appName))
 	if err != nil {
-		return
+		return errors.Join(fmt.Errorf(`xdg.StateFile was unable to set "%s" path`, stateDir), err)
 	}
+	service.paths.ThisApplicationPaths.Paths.StateHome = stateDir
 
-	tmpSecretsMTls, err := xdgRuntimeFile(relPath + "/secrets/mTLS")
+	cacheFilePath, err := xdgCacheFile(relFilePath + ".cache")
 	if err != nil {
-		return
+		return errors.Join(fmt.Errorf(`xdg.CacheFile was unable to set "%s" path`, cacheFilePath), err)
 	}
+	service.paths.ThisApplicationPaths.Paths.CacheHome = filepath.Dir(cacheFilePath)
+	service.paths.ThisApplicationPaths.Paths.CacheFile = cacheFilePath
 
-	dataFile, err := xdgDataFile(relPath)
+	service.paths.ThisApplicationPaths.Paths.BinFile = fmt.Sprintf("%s/%s", xdg.BinHome, service.appName)
+
+	//for _, pluginTypeName := range service.
+
+	service.paths.ThisApplicationPaths.Paths.PluginsHome = xdg.DataHome + "/plugins"
+
+	//
+	// Secrets
+	//
+	secretsRelPath := fmt.Sprintf("%s/%s", service.appName, "/secrets")
+
+	tmpSecrets, err := xdgRuntimeFile(secretsRelPath)
 	if err != nil {
-		return
+		return errors.Join(fmt.Errorf(`xdg.RuntimeFile was unable to set "%s" path`, tmpSecrets), err)
 	}
+	service.paths.ThisApplicationPaths.Paths.RuntimeDir = filepath.Dir(tmpSecrets)
+	service.paths.ThisApplicationPaths.Paths.SecretsHome = tmpSecrets
 
-	service.paths.ThisApplicationPaths.Name = service.appName
-	service.paths.ThisApplicationPaths.Paths.SecretsPaths.SecretsHome = tmpSecrets
-	service.paths.ThisApplicationPaths.Paths.SecretsPaths.SecretsHome = tmpSecretsMTls
-	//service.paths.ThisApplicationPaths.Paths.
+	tmpSecretsMTls, err := xdgRuntimeFile(secretsRelPath + "/mTLS")
+	if err != nil {
+		return errors.Join(fmt.Errorf(`xdg.RuntimeFile was unable to set "%s" path`, tmpSecrets), err)
+	}
+	service.paths.ThisApplicationPaths.Paths.MTLSHome = tmpSecretsMTls
 
-	/*xdg.RuntimeFile(relPath + "socket")
-
-	xdg.SearchCacheFile()
-	xdg.SearchConfigFile()
-	xdg.SearchDataFile()
-	xdg.SearchRuntimeFile()
-	xdg.SearchStateFile()*/
+	return nil
 }
 
 // SystemPaths returns struct of all systems paths
