@@ -15,7 +15,7 @@ func NewLocationService(appName AppName, appVersion AppVersion, pluginTypeNames 
 	}
 
 	// Set
-	err := serviceLocation.setSystemPaths()
+	err := serviceLocation.setAll()
 	if err != nil {
 		return nil, err
 	}

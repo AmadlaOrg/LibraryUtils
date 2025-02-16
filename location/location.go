@@ -13,13 +13,6 @@ import (
 type ILocation interface {
 	SystemPaths() *SystemPaths
 	ThisAppPaths() *ApplicationPaths
-	PluginPath(dirName string) string
-	/*Paths(collectionName string) (*AbsPaths, error)
-	Main() (string, error)
-	EntityPath(collectionPath, entityRelativePath string) string
-	TmpPaths(collectionName string) (*AbsPaths, error)
-	TmpMain() (string, error)
-	MakePaths(paths AbsPaths) error*/
 }
 type SLocation struct {
 	appName         AppName
@@ -47,8 +40,11 @@ var (
 	xdgDataFile    = xdg.DataFile
 )
 
-func (service *SLocation) set() error {
+func (service *SLocation) setAll() error {
 	service.paths.ThisApplicationPaths.Name = service.appName
+
+	relFilePath := fmt.Sprintf("%s/%s", service.appName, service.appName)
+
 	err := service.setSystemPaths()
 	if err != nil {
 		return err
@@ -59,7 +55,29 @@ func (service *SLocation) set() error {
 		return err
 	}
 
-	err = service.setConfigPaths()
+	err = service.setConfigPaths(relFilePath)
+	if err != nil {
+		return err
+	}
+
+	err = service.setStatePaths()
+	if err != nil {
+		return err
+	}
+
+	err = service.setCachePaths(relFilePath)
+	if err != nil {
+		return err
+	}
+
+	service.setBinPaths()
+
+	err = service.setPluginPaths()
+	if err != nil {
+		return err
+	}
+
+	err = service.setSecretPaths()
 	if err != nil {
 		return err
 	}
@@ -67,7 +85,7 @@ func (service *SLocation) set() error {
 	return nil
 }
 
-// setSystemPaths
+// setSystemPaths sets the basic system paths
 func (service *SLocation) setSystemPaths() error {
 	//
 	// System
@@ -119,6 +137,7 @@ func (service *SLocation) setSystemPaths() error {
 	return nil
 }
 
+// setDataPaths
 func (service *SLocation) setDataPaths() error {
 	dataDir, err := xdgDataFile(string(service.appName))
 	if err != nil {
@@ -129,8 +148,8 @@ func (service *SLocation) setDataPaths() error {
 	return nil
 }
 
-func (service *SLocation) setConfigPaths() error {
-	relFilePath := fmt.Sprintf("%s/%s", service.appName, service.appName)
+// setConfigPaths
+func (service *SLocation) setConfigPaths(relFilePath string) error {
 	configFile, err := xdgConfigFile(relFilePath + ".yaml")
 	if err != nil {
 		return errors.Join(fmt.Errorf(`xdg.ConfigFile was unable to set "%s" path`, configFile), err)
@@ -140,6 +159,7 @@ func (service *SLocation) setConfigPaths() error {
 	return nil
 }
 
+// setStatePaths
 func (service *SLocation) setStatePaths() error {
 	stateDir, err := xdg.StateFile(string(service.appName))
 	if err != nil {
@@ -150,6 +170,7 @@ func (service *SLocation) setStatePaths() error {
 	return nil
 }
 
+// setCachePaths
 func (service *SLocation) setCachePaths(relFilePath string) error {
 	cacheFilePath, err := xdgCacheFile(relFilePath + ".cache")
 	if err != nil {
@@ -158,17 +179,27 @@ func (service *SLocation) setCachePaths(relFilePath string) error {
 	service.paths.ThisApplicationPaths.Paths.CacheHome = filepath.Dir(cacheFilePath)
 	service.paths.ThisApplicationPaths.Paths.CacheFile = cacheFilePath
 
-	service.paths.ThisApplicationPaths.Paths.BinFile = fmt.Sprintf("%s/%s", xdg.BinHome, service.appName)
+	return nil
+}
 
+// setBinPaths
+func (service *SLocation) setBinPaths() {
+	service.paths.ThisApplicationPaths.Paths.BinFile = fmt.Sprintf("%s/%s", xdg.BinHome, service.appName)
+}
+
+// setPluginPaths
+func (service *SLocation) setPluginPaths() error {
 	var pluginDirs map[string]string
 	for _, pluginTypeName := range service.pluginTypeNames {
 		pluginDirs[pluginTypeName] = fmt.Sprintf("%s/%s.d", xdg.DataHome, pluginTypeName)
 	}
 	service.paths.ThisApplicationPaths.Paths.PluginsHome = pluginDirs
 
-	//
-	// Secrets
-	//
+	return nil
+}
+
+// setSecretPaths
+func (service *SLocation) setSecretPaths() error {
 	secretsRelPath := fmt.Sprintf("%s/secrets", service.appName)
 
 	tmpSecrets, err := xdgRuntimeFile(secretsRelPath)
