@@ -1,3 +1,4 @@
+// Package desktop is for generating a `.desktop` content and file
 package desktop
 
 import (
@@ -185,12 +186,16 @@ func (service *SDesktop) Save(dirPath string) error {
 	return nil
 }
 
-// processContent
+// processContent processes a slice of Content values and appends them to the builder,
+// formatting them according to the presence of a language.
 //
 // Params:
-// - 🏠 propertyName:
-// - 💎 contentValues:
-// - 🙏 need:
+// - 🏠 propertyName: The name of the property being processed.
+// - 💎 contentValues: A pointer to a slice of Content structs.
+// - 🙏 need: A flag indicating whether the property must be set.
+//
+// Returns:
+// - 🚨 error: Returns an error if isNeeded is true and the property is not set properly.
 func (service *SDesktop) processContent(propertyName string, contentValues *[]Content, isNeeded bool) error {
 	var (
 		isSet         = false
@@ -221,12 +226,13 @@ func (service *SDesktop) processContent(propertyName string, contentValues *[]Co
 	return nil
 }
 
-// processPropertyDefault
+// processPropertyDefault processes a single property and assigns it either the provided value
+// or a default value if the provided value is nil or empty.
 //
 // Params:
-// - 🏠 propertyName:
-// - 💎 contentValue:
-// - ⚠️ defaultValue:
+// - 🏠 propertyName: The name of the property being processed.
+// - 💎 contentValue: A pointer to the string value of the property (maybe nil).
+// - ⚠️ defaultValue: The default value to use if contentValue is nil or empty.
 func (service *SDesktop) processPropertyDefault(propertyName string, contentValue *string, defaultValue string) {
 	if contentValue == nil || *contentValue == "" {
 		service.builder.WriteString(fmt.Sprintf("%s=%s\n", propertyName, defaultValue))
@@ -235,40 +241,50 @@ func (service *SDesktop) processPropertyDefault(propertyName string, contentValu
 	}
 }
 
-// processRequiredProperty
+// processRequiredProperty processes a required property, ensuring that it is set.
+// If the property is missing or empty, an error is returned.
 //
 // Params:
-// - 🏠 propertyName:
-// - 💎 contentValue:
+// - 🏠 propertyName: The name of the property being processed.
+// - 💎 contentValue: A pointer to the string value of the property (maybe nil).
+//
+// Returns:
+// - 🚨 error: Returns an error if contentValue is nil or empty.
 func (service *SDesktop) processRequiredProperty(propertyName string, contentValue *string) error {
 	if contentValue != nil && *contentValue != "" {
 		service.builder.WriteString(fmt.Sprintf("%s=%s\n", propertyName, *contentValue))
 		return nil
 	} else {
-		return fmt.Errorf("%s is required", propertyName)
+		return fmt.Errorf("the property %s is required", propertyName)
 	}
 }
 
-// processNotRequiredProperty
+// processNotRequiredProperty processes a property that is not required.
+// If the property has a value, it is written to the builder.
+// If the property is nil or empty, nothing is written.
 //
 // Params:
-// - 🏠 propertyName:
-// - 💎 contentValue:
+// - 🏠 propertyName: The name of the property being processed.
+// - 💎 contentValue: A pointer to the string value of the property (maybe nil).
 func (service *SDesktop) processNotRequiredProperty(propertyName string, contentValue *string) {
 	if contentValue != nil && *contentValue != "" {
 		service.builder.WriteString(fmt.Sprintf("%s=%s\n", propertyName, *contentValue))
 	}
 }
 
-// processList
+// processList processes a list of items and appends them to the builder in a semicolon-separated format.
+// If the list is required (`isNeeded` is true) and empty, an error is returned.
 //
 // Params:
-// - 🏠 propertyName:
-// - 👑 items:
-// - 🙏 need:
+// - 🏠 propertyName: The name of the property being processed.
+// - 👑 items: A pointer to a slice of List items (can be nil or empty).
+// - 🙏 need: A flag indicating whether the property must be set.
+//
+// Returns:
+// - 🚨 error: Returns an error if `isNeeded` is true and the list is empty.
 func (service *SDesktop) processList(propertyName string, items *[]List, isNeeded bool) error {
 	if isNeeded && (items == nil || len(*items) == 0) {
-		return fmt.Errorf("%s is empty", propertyName)
+		return fmt.Errorf("the property %s is empty", propertyName)
 	}
 
 	if items != nil && len(*items) > 0 {
@@ -284,15 +300,19 @@ func (service *SDesktop) processList(propertyName string, items *[]List, isNeede
 	return nil
 }
 
-// processCommaList
+// processCommaList processes a list of items and appends them to the builder in a comma-separated format.
+// If the list is required (`isNeeded` is true) and empty, an error is returned.
 //
 // Params:
-// - 🏠 propertyName:
-// - 👑 items:
-// - 🙏 need:
+// - 🏠 propertyName: The name of the property being processed.
+// - 👑 items: A pointer to a slice of CommaList items (can be nil or empty).
+// - 🙏 need: A flag indicating whether the property must be set.
+//
+// Returns:
+// - 🚨 error: Returns an error if `isNeeded` is true and the list is empty.
 func (service *SDesktop) processCommaList(propertyName string, items *[]CommaList, isNeeded bool) error {
 	if isNeeded && (items == nil || len(*items) == 0) {
-		return fmt.Errorf("%s is empty", propertyName)
+		return fmt.Errorf("the property %s is empty", propertyName)
 	}
 
 	if items != nil && len(*items) > 0 {
