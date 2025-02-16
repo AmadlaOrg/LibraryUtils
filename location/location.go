@@ -3,7 +3,6 @@ package location
 import (
 	"errors"
 	"fmt"
-	"os"
 	"path/filepath"
 	"runtime"
 
@@ -48,9 +47,28 @@ var (
 	xdgDataFile    = xdg.DataFile
 )
 
+func (service *SLocation) set() error {
+	service.paths.ThisApplicationPaths.Name = service.appName
+	err := service.setSystemPaths()
+	if err != nil {
+		return err
+	}
+
+	err = service.setDataPaths()
+	if err != nil {
+		return err
+	}
+
+	err = service.setConfigPaths()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // setSystemPaths
 func (service *SLocation) setSystemPaths() error {
-	service.paths.ThisApplicationPaths.Name = service.appName
 	//
 	// System
 	//
@@ -73,46 +91,66 @@ func (service *SLocation) setSystemPaths() error {
 		runtime.GOOS != "darwin" &&
 		runtime.GOOS != "plan9" {
 		sysPaths.UserLocalHome = filepath.Join(xdg.DataHome, ".local")
-		sysPaths.UserApplicationsHome = filepath.Join(xdg.DataHome, "applications")
 
-		if !file.Exists(sysPaths.UserApplicationsHome) {
-			var existApplicationsPath string
-			for _, applicationsPath := range xdg.ApplicationDirs {
-				if file.Exists(applicationsPath) {
-					existApplicationsPath = applicationsPath
-					break
-				}
+		// TODO:
+		//sysPaths.UserApplicationsHome = filepath.Join(xdg.DataHome, "applications")
+
+		var existApplicationsPath string
+		for _, applicationsPath := range xdg.ApplicationDirs {
+			if file.Exists(applicationsPath) {
+				existApplicationsPath = applicationsPath
+				break
 			}
-			if existApplicationsPath != "" {
-				sysPaths.UserApplicationsHome = existApplicationsPath
-			} else {
-				return errors.New("applications directory not found")
-			}
+		}
+		if existApplicationsPath != "" {
+			sysPaths.UserApplicationsHome = existApplicationsPath
+			service.paths.ThisApplicationPaths.Paths.ApplicationsDesktopFile = fmt.Sprintf(
+				"%s/%s.desktop",
+				existApplicationsPath,
+				string(service.appName),
+			)
+		} else {
+			return errors.New("applications directory not found")
 		}
 	}
 
 	service.paths.SystemPaths = sysPaths
 
-	relFilePath := fmt.Sprintf("%s/%s", service.appName, service.appName)
+	return nil
+}
 
+func (service *SLocation) setDataPaths() error {
 	dataDir, err := xdgDataFile(string(service.appName))
 	if err != nil {
 		return errors.Join(fmt.Errorf(`xdg.DataFile was unable to set "%s" path`, dataDir), err)
 	}
 	service.paths.ThisApplicationPaths.Paths.DataHome = dataDir
 
+	return nil
+}
+
+func (service *SLocation) setConfigPaths() error {
+	relFilePath := fmt.Sprintf("%s/%s", service.appName, service.appName)
 	configFile, err := xdgConfigFile(relFilePath + ".yaml")
 	if err != nil {
 		return errors.Join(fmt.Errorf(`xdg.ConfigFile was unable to set "%s" path`, configFile), err)
 	}
 	service.paths.ThisApplicationPaths.Paths.ConfigFile = filepath.Dir(configFile)
 
+	return nil
+}
+
+func (service *SLocation) setStatePaths() error {
 	stateDir, err := xdg.StateFile(string(service.appName))
 	if err != nil {
 		return errors.Join(fmt.Errorf(`xdg.StateFile was unable to set "%s" path`, stateDir), err)
 	}
 	service.paths.ThisApplicationPaths.Paths.StateHome = stateDir
 
+	return nil
+}
+
+func (service *SLocation) setCachePaths(relFilePath string) error {
 	cacheFilePath, err := xdgCacheFile(relFilePath + ".cache")
 	if err != nil {
 		return errors.Join(fmt.Errorf(`xdg.CacheFile was unable to set "%s" path`, cacheFilePath), err)
@@ -122,14 +160,16 @@ func (service *SLocation) setSystemPaths() error {
 
 	service.paths.ThisApplicationPaths.Paths.BinFile = fmt.Sprintf("%s/%s", xdg.BinHome, service.appName)
 
-	//for _, pluginTypeName := range service.
-
-	service.paths.ThisApplicationPaths.Paths.PluginsHome = xdg.DataHome + "/plugins"
+	var pluginDirs map[string]string
+	for _, pluginTypeName := range service.pluginTypeNames {
+		pluginDirs[pluginTypeName] = fmt.Sprintf("%s/%s.d", xdg.DataHome, pluginTypeName)
+	}
+	service.paths.ThisApplicationPaths.Paths.PluginsHome = pluginDirs
 
 	//
 	// Secrets
 	//
-	secretsRelPath := fmt.Sprintf("%s/%s", service.appName, "/secrets")
+	secretsRelPath := fmt.Sprintf("%s/secrets", service.appName)
 
 	tmpSecrets, err := xdgRuntimeFile(secretsRelPath)
 	if err != nil {
@@ -155,14 +195,6 @@ func (service *SLocation) SystemPaths() *SystemPaths {
 // ThisAppPaths returns the struct of all the main application paths
 func (service *SLocation) ThisAppPaths() *ApplicationPaths {
 	return service.paths.ThisApplicationPaths.Paths
-}
-
-// PluginPath with the name of a plugin returns the absolute path to the plugin
-//
-// Params:
-// - 📇 dirName - The name of the directory where the plugin is found
-func (service *SLocation) PluginPath(dirName string) string {
-	return filepath.Join(service.ThisAppPaths().PluginsHome, dirName)
 }
 
 // Paths return the absolute paths for the different parts of storage
