@@ -189,7 +189,7 @@ func (service *SLocation) setBinPaths() {
 
 // setPluginPaths
 func (service *SLocation) setPluginPaths() error {
-	var pluginDirs map[string]string
+	pluginDirs := make(map[string]string)
 	for _, pluginTypeName := range service.pluginTypeNames {
 		pluginDirs[pluginTypeName] = fmt.Sprintf("%s/%s.d", xdg.DataHome, pluginTypeName)
 	}

@@ -12,6 +12,13 @@ func NewLocationService(appName AppName, appVersion AppVersion, pluginTypeNames 
 		appName:         appName,
 		appVersion:      appVersion,
 		pluginTypeNames: pluginTypeNames,
+		paths: &Paths{
+			SystemPaths: &SystemPaths{},
+			ThisApplicationPaths: &Application{
+				Paths: &ApplicationPaths{},
+			},
+			Applications: &[]Application{},
+		},
 	}
 
 	// Set
@@ -20,7 +27,9 @@ func NewLocationService(appName AppName, appVersion AppVersion, pluginTypeNames 
 		return nil, err
 	}
 
-	sysPaths := serviceLocation.paths.SystemPaths
+	return serviceLocation, nil
+
+	//sysPaths := serviceLocation.paths.SystemPaths
 
 	// TODO: What happens when there is no path set
 	// TODO: There needs to be a check for each of these paths... Maybe use `mkdir -p`
@@ -51,35 +60,35 @@ func NewLocationService(appName AppName, appVersion AppVersion, pluginTypeNames 
 
 	// TODO: Validate them
 
-	return &SLocation{
-		paths: &Paths{
-			SystemPaths: sysPaths,
-			ThisApplicationPaths: &Application{
-				Name: appName,
-				/*Paths: &ApplicationPaths{
-					DataHome:   appDataHome,
-					ConfigHome: appConfigHome,
-					StateHome:  appStateHome,
-					CacheHome:  appCacheHome,
-					RuntimeDir: appRuntimeDir,
-					BinFile:    appBinHome,
+	/*return &SLocation{
+	paths: &Paths{
+		SystemPaths: sysPaths,
+		ThisApplicationPaths: &Application{
+			Name: appName,
+			/*Paths: &ApplicationPaths{
+				DataHome:   appDataHome,
+				ConfigHome: appConfigHome,
+				StateHome:  appStateHome,
+				CacheHome:  appCacheHome,
+				RuntimeDir: appRuntimeDir,
+				BinFile:    appBinHome,
 
-					// Custom:
-					ConfigFile: filepath.Join(appConfigHome, fmt.Sprintf("%s.json", appName)),
+				// Custom:
+				ConfigFile: filepath.Join(appConfigHome, fmt.Sprintf("%s.json", appName)),
 
-					// TODO:
-					PluginsHome: filepath.Join(appDataHome, fmt.Sprintf("%s.d", pluginTypeName)),
+				// TODO:
+				PluginsHome: filepath.Join(appDataHome, fmt.Sprintf("%s.d", pluginTypeName)),
 
-					// TODO:
-					CacheFile: filepath.Join(appDataHome, fmt.Sprintf("%s.cache", appName)),
+				// TODO:
+				CacheFile: filepath.Join(appDataHome, fmt.Sprintf("%s.cache", appName)),
 
-					ApplicationsDesktopFile: filepath.Join(
-						sysPaths.DataHome,
-						"applications",
-						fmt.Sprintf("%s.desktop", appName),
-					),
-				},*/
-			},
+				ApplicationsDesktopFile: filepath.Join(
+					sysPaths.DataHome,
+					"applications",
+					fmt.Sprintf("%s.desktop", appName),
+				),
+			},*/
+	/*},
 		},
-	}, nil
+	}, nil*/
 }
