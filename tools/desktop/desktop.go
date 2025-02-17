@@ -31,39 +31,43 @@ var (
 	osWriteFile = os.WriteFile
 )
 
-// Build generates the content for the `.desktop` file format
+// Build generates the content for the `.desktop` file format by processing each group in the provided `Desktop` object.
+// It builds sections and properties based on the `.desktop` specification.
 //
 // Params:
-// - 🖥️ desktop:
-// - 📍 location:
+// - 🖥️ desktop: A pointer to the Desktop struct containing groups and their properties.
+//
+// Returns:
+// - IDesktop: The constructed desktop representation.
+// - 🚨 error: Returns an error if any required property is missing or incorrectly formatted.
 func (service *SDesktop) Build(desktop *Desktop) (IDesktop, error) {
 	var (
-		sectionNames []string
+		groupNames []string
 	)
 
-	sections := *desktop.Sections
+	groups := *desktop.Groups
 
-	for _, section := range sections {
+	for _, group := range groups {
 		//
 		// Section
 		//
 		var thisSectionName string
 
-		if section.Title == nil ||
-			*section.Title == "" ||
-			*section.Title == defaultDesktopSectionName {
+		if group.Title == nil ||
+			*group.Title == "" ||
+			*group.Title == defaultDesktopSectionName {
 			thisSectionName = fmt.Sprintf("[%s]\n", defaultDesktopSectionName)
 		} else {
-			thisSectionName = fmt.Sprintf("[%s]\n", *section.Title)
+			thisSectionName = fmt.Sprintf("[%s]\n", *group.Title)
 		}
 
 		service.builder.WriteString(thisSectionName)
-		sectionNames = append(sectionNames, thisSectionName)
+		groupNames = append(groupNames, thisSectionName)
 
 		//
 		// Name
 		//
-		err := service.processContent("Name", section.Names, true)
+		err := service.processContent("Name", group.Names, true)
 		if err != nil {
 			return nil, err
 		}
@@ -71,27 +75,27 @@ func (service *SDesktop) Build(desktop *Desktop) (IDesktop, error) {
 		//
 		// GenericNames
 		//
-		_ = service.processContent("GenericName", section.GenericNames, false)
+		_ = service.processContent("GenericName", group.GenericNames, false)
 
 		//
 		// Comments
 		//
-		_ = service.processContent("Comment", section.Comments, false)
+		_ = service.processContent("Comment", group.Comments, false)
 
 		//
 		// Keywords
 		//
-		_ = service.processContent("Keywords", section.Keywords, false)
+		_ = service.processContent("Keywords", group.Keywords, false)
 
 		//
 		// Version
 		//
-		service.processPropertyDefault("Version", section.Version, "1.0")
+		service.processPropertyDefault("Version", group.Version, "1.0")
 
 		//
 		// X-AppVersion
 		//
-		err = service.processRequiredProperty("X-AppVersion", section.XAppVersion)
+		err = service.processRequiredProperty("X-AppVersion", group.XAppVersion)
 		if err != nil {
 			return nil, err
 		}
@@ -99,72 +103,74 @@ func (service *SDesktop) Build(desktop *Desktop) (IDesktop, error) {
 		//
 		// Icon
 		//
-		service.processNotRequiredProperty("Icon", section.Icon)
+		service.processNotRequiredProperty("Icon", group.Icon)
 
 		//
 		// Categories
 		//
-		_ = service.processList("Categories", section.Categories, false)
+		_ = service.processList("Categories", group.Categories, false)
 
 		//
 		// x-kde-protocols
 		//
-		_ = service.processCommaList("X-KDE-Protocols", section.XKDEProtocols, false)
+		_ = service.processCommaList("X-KDE-Protocols", group.XKDEProtocols, false)
 
 		//
 		// Encoding
 		//
-		service.processNotRequiredProperty("Encoding", section.Encoding)
+		service.processNotRequiredProperty("Encoding", group.Encoding)
 
 		//
 		// Terminal
 		//
 		service.processPropertyDefault(
 			"Terminal",
-			pointer.ToPtr(strconv.FormatBool(section.Terminal)),
+			pointer.ToPtr(strconv.FormatBool(group.Terminal)),
 			"true")
 
 		//
 		// Type
 		//
-		if section.Type == nil || *section.Type == "" {
-			section.Type = (*Type)(pointer.ToPtr("Application"))
+		if group.Type == nil || *group.Type == "" {
+			group.Type = (*Type)(pointer.ToPtr("Application"))
 		}
 
-		service.builder.WriteString(fmt.Sprintf("Type=%s\n", string(*section.Type)))
-		if *section.Type == ApplicationType {
+		service.builder.WriteString(fmt.Sprintf("Type=%s\n", string(*group.Type)))
+		if *group.Type == ApplicationType {
 			//
 			// Exec
 			//
-			err = service.processRequiredProperty("Exec", &section.Exec)
+			err = service.processRequiredProperty("Exec", &group.Exec)
 			if err != nil {
 				return nil, err
 			}
-		} else if *section.Type == LinkType {
+		} else if *group.Type == LinkType {
 			//
 			// Url
 			//
-			err = service.processRequiredProperty("Url", &section.URL)
+			err = service.processRequiredProperty("Url", &group.URL)
 			if err != nil {
 				return nil, err
 			}
-		} else if *section.Type == DirectoryType {
-			// TODO:
 		}
 
 		//
 		// MimeType
 		//
-		_ = service.processList("MimeType", section.MimeType, false)
+		_ = service.processList("MimeType", group.MimeType, false)
 	}
 
 	return service, nil
 }
 
-// Save to a `.desktop` file.
+// Save writes the generated `.desktop` content to a file in the specified directory.
+// It ensures the directory exists before writing.
 //
 // Params:
-// - dirPath:
+// - 📁 dirPath: The directory where the `.desktop` file should be saved.
+//
+// Returns:
+// - 🚨 error: Returns an error if the directory cannot be created or if writing to the file fails.
 func (service *SDesktop) Save(dirPath string) error {
 	err := osMkdirAll(dirPath, 0755)
 	if err != nil {

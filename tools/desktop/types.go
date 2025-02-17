@@ -4,62 +4,80 @@ const (
 	defaultDesktopSectionName = "Desktop Entry"
 )
 
-// Desktop contains a list of sections that are in `.desktop`
+// Desktop contains a list of groups that are in `.desktop`
 type Desktop struct {
-	Sections *[]Section
+	// Groups contains the required group and optional groups.
+	//
+	// Note:
+	// - [Desktop Entry] → Always required, defines the application.
+	// - [Desktop Action ...] → Defines extra actions (right-click menu).
+	// - Custom Groups ([MyCustomGroup]) → App-specific (optional).
+	// - [KDE Service] → KDE-specific settings (optional).
+	Groups *[]Group
 }
 
-// Section in the `.desktop` file
-type Section struct {
+// Group defines the essential metadata for a desktop application launcher or shortcut.
+// This metadata allows the system to understand how the application should be represented and launched.
+type Group struct {
 	// Title (default: [Desktop Entry] is there is more than one section,
 	// and they don't have a title an error is thrown) is the name/title of the section
 	//
-	// E.g.: [Desktop Entry]
+	// Example:
+	// - [Desktop Entry]
 	Title *string `json:"title,omitempty"`
 
 	// Names (default: throws error) is a list of the application/service name in different languages
 	//
-	// E.g.: Name= / Name[fr]=
+	// Example:
+	// - Name={appName}
+	// - Name[fr]={nomDuApp}
 	Names *[]Content `json:"names"`
 
 	// GenericNames (default: none) is similar to Name but is more generic
 	//
-	// E.g.:
+	// Example:
 	// Name=VLC Media Player
 	// GenericName=Media Player
 	GenericNames *[]Content `json:"genericNames,omitempty"`
 
 	// Comments (default: throws error) is a list of comment (similar to a description) in different languages
 	//
-	// E.g.: Comment= / Comment[fr]=
+	// Example:
+	// - Comment=Some description
+	// - Comment[fr]=Une description
 	Comments *[]Content `json:"comment"`
 
 	// Keywords (default: none) is a list of Keywords sets in different languages
 	//
-	// E.g.: Development;Utility;
+	// Example:
+	// - Keywords=Development;Utility;
 	Keywords *[]Content `json:"keywords,omitempty"`
 
 	// Version (default: 1.0) is the desktop entry specification version
 	// This field is used to indicate which version of the desktop entry specification the file adheres to.\
 	// Currently, the recommended value is `1.0`, as defined by the `freedesktop.org` specification.
 	//
-	// E.g.: 1.0
+	// Example:
+	// - Version=1.0
 	Version *string `json:"version,omitempty"`
 
 	// XAppVersion (`X-AppVersion`) (default: throws error) is the actual version of the application
 	//
-	// E.g.: X-AppVersion=1.0.0
+	// Example:
+	// - X-AppVersion=1.0.0
 	XAppVersion *string `json:"x-app-version"`
 
 	// Icon (default: none) is the absolute file path to the icon of the application
 	//
-	// E.g.: /home/user/.local/share/appName/icon.svg
+	// Example:
+	// - /home/user/.local/share/{appName}/icon.svg
 	Icon *string `json:"icon,omitempty"`
 
 	// Categories (default: Development;Utility;) is an optional list of categories that represent the application
 	// This is for internal purposes so there is no need for multi-language support
 	//
-	// E.g.: Categories=Development;Utility;
+	// Example:
+	// - Categories=Development;Utility;
 	Categories *[]List `json:"categories"`
 
 	// XKDEProtocols (default: none) is a KDE-specific key that lists the supported URL protocols for an application
@@ -69,21 +87,23 @@ type Section struct {
 	// For the support of other GUIs:
 	// MimeType=x-scheme-handler/http;x-scheme-handler/https;x-scheme-handler/mailto;
 	//
-	// E.g.: X-KDE-Protocols=ftp,http,https,mms,rtmp
+	// Example:
+	// - X-KDE-Protocols=ftp,http,https,mms,rtmp
 	XKDEProtocols *[]CommaList `json:"x-kde-protocols"`
 
 	// Encoding (default: none) is the text encoding
 	//
-	// E.g.:
-	// Encoding=UTF-8
+	// Example:
+	// - Encoding=UTF-8
 	Encoding *string `json:"encoding,omitempty"`
 
 	// Exec (default: /home/user/.local/bin/{appName}) contains the absolute path the application
 	//
-	// E.g.: Exec=/home/user/.local/bin/appName
+	// Example:
+	// - Exec=/home/user/.local/bin/{appName}
 	//
 	// Example in Kali Linux:
-	// /usr/share/kali-menu/exec-in-shell "tcpdump -h"
+	// - /usr/share/kali-menu/exec-in-shell "tcpdump -h"
 	Exec string `json:"exec"`
 
 	// Terminal (default: true) is a boolean key that determines whether the application should be launched in a
