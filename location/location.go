@@ -21,18 +21,6 @@ type SLocation struct {
 	paths           *Paths
 }
 
-//const perm os.FileMode = os.ModePerm
-
-// For mocking
-/*var (
-	osGetwd      = os.Getwd
-	filepathAbs  = filepath.Abs
-	filepathJoin = filepath.Join
-	fileExists   = file.Exists
-	osMkdirAll   = os.MkdirAll
-	osMkdirTemp  = os.MkdirTemp
-)*/
-
 var (
 	xdgCacheFile   = xdg.CacheFile
 	xdgConfigFile  = xdg.ConfigFile
@@ -42,6 +30,7 @@ var (
 
 func (service *SLocation) setAll() error {
 	service.paths.ThisApplicationPaths.Name = service.appName
+	service.paths.ThisApplicationPaths.PluginTypeNames = service.pluginTypeNames
 
 	relFilePath := fmt.Sprintf("%s/%s", service.appName, service.appName)
 
@@ -154,7 +143,8 @@ func (service *SLocation) setConfigPaths(relFilePath string) error {
 	if err != nil {
 		return errors.Join(fmt.Errorf(`xdg.ConfigFile was unable to set "%s" path`, configFile), err)
 	}
-	service.paths.ThisApplicationPaths.Paths.ConfigFile = filepath.Dir(configFile)
+	service.paths.ThisApplicationPaths.Paths.ConfigFile = configFile
+	service.paths.ThisApplicationPaths.Paths.ConfigHome = filepath.Dir(configFile)
 
 	return nil
 }

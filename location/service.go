@@ -8,17 +8,23 @@ package location
 // - ♻️ appVersion - The version of the application.
 // - 💊 pluginTypeName - The plugin type names (e.g.: HERY => entity, doorman => clerk).
 func NewLocationService(appName AppName, appVersion AppVersion, pluginTypeNames PluginTypeNames) (ILocation, error) {
+	thisPaths := &ApplicationPaths{
+		PluginsHome: map[string]string{},
+	}
+
+	paths := &Paths{
+		SystemPaths: &SystemPaths{},
+		ThisApplicationPaths: &Application{
+			Paths: thisPaths,
+		},
+		Applications: &[]Application{},
+	}
+
 	serviceLocation := &SLocation{
 		appName:         appName,
 		appVersion:      appVersion,
 		pluginTypeNames: pluginTypeNames,
-		paths: &Paths{
-			SystemPaths: &SystemPaths{},
-			ThisApplicationPaths: &Application{
-				Paths: &ApplicationPaths{},
-			},
-			Applications: &[]Application{},
-		},
+		paths:           paths,
 	}
 
 	// Set
