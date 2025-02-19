@@ -2,7 +2,7 @@ package dbus
 
 import (
 	"fmt"
-	"github.com/AmadlaOrg/LibraryUtils/encryption"
+	"github.com/AmadlaOrg/LibraryUtils/encryption/aes_gcm"
 	"github.com/godbus/dbus/v5"
 	"log"
 )
@@ -18,7 +18,7 @@ func getJWTToken() (string, *dbus.Error) {
 	jwtToken := "JWT_TOKEN_123456"
 
 	// Encrypt the token before sending
-	encryptedToken, err := encryption.Encrypt(jwtToken, secretKey)
+	encryptedToken, err := aes_gcm.Encrypt(jwtToken, secretKey)
 	if err != nil {
 		log.Println("Encryption error:", err)
 		return "", dbus.NewError("com.clerk.aws.EncryptionError", []interface{}{"Encryption failed"})

@@ -2,11 +2,14 @@ package configuration
 
 import "github.com/spf13/viper"
 
+// IConfiguration 🧩 Is the interface for the NewConfigurationService.
 type IConfiguration interface {
 	AllPropertyNames() []string
 	AllProperties() map[string]any
 	Set(key string, defaultValue any)
 }
+
+// SConfiguration 🏛️ Is the main structure for the NewConfigurationService.
 type SConfiguration struct {
 	// 📇 appName - Is the of the application (normally all lowercase)
 	appName string

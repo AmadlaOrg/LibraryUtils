@@ -2,6 +2,13 @@ resolve-type-alias: False
 issue-845-fix: True
 
 packages:
+  github.com/AmadlaOrg/LibraryUtils/configuration:
+    interfaces:
+      IConfiguration:
+        config:
+          dir: "{{.InterfaceDir}}"
+          mockName: "MockConfiguration"
+          inpackage: True
   github.com/AmadlaOrg/LibraryUtils/file:
     interfaces:
       IFile:
@@ -37,6 +44,27 @@ packages:
         config:
           dir: "{{.InterfaceDir}}"
           mockName: "MockGoGitRemote"
+          inpackage: True
+  github.com/AmadlaOrg/LibraryUtils/location:
+    interfaces:
+      ILocation:
+        config:
+          dir: "{{.InterfaceDir}}"
+          mockName: "MockLocation"
+          inpackage: True
+  github.com/AmadlaOrg/LibraryUtils/tools/desktop:
+    interfaces:
+      IDesktop:
+        config:
+          dir: "{{.InterfaceDir}}"
+          mockName: "MockToolsDesktop"
+          inpackage: True
+  github.com/AmadlaOrg/LibraryUtils/tools/document:
+    interfaces:
+      IDocument:
+        config:
+          dir: "{{.InterfaceDir}}"
+          mockName: "MockToolsDocument"
           inpackage: True
   io/fs:
     interfaces:
