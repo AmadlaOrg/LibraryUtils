@@ -1,6 +1,8 @@
 package location
 
-/*func TestPaths(t *testing.T) {
-	locationService := NewLocationService()
-	locationService.Paths()
+/*func Test_setSystemPaths(t *testing.T) {
+	tests := []struct {
+		name string
+		path string
+	}
 }*/

@@ -16,11 +16,8 @@ type Paths struct {
 	// 🤖 SystemPaths contains the struct of the system paths
 	SystemPaths *SystemPaths
 
-	// 🚩 ThisApplicationPaths
-	ThisApplicationPaths *Application
-
-	// 🖧 Applications
-	Applications *[]Application
+	// 🚩 This Application Paths
+	ApplicationPaths *ApplicationPaths
 }
 
 // SystemPaths contains the system directories paths
@@ -175,24 +172,6 @@ type SystemPaths struct {
 	UserApplicationsHome string
 }
 
-// AmadlaPaths contains all the amadla root paths since all the amadla
-// TODO: Might remove
-type AmadlaPaths struct {
-	/*Storage    string // e.g.: /home/user/.hery/
-	Catalog    string // e.g.: /home/user/.hery/collection/
-	Collection string // e.g.: /home/user/.hery/collection/amadla/
-	Entities   string // e.g.: /home/user/.hery/collection/amadla/entity/
-	Cache      string // e.g.: /home/user/.hery/collection/amadla/amadla.cache
-	*/
-}
-
-// Application contains the specific paths and name/title of an application
-type Application struct {
-	Name            AppName
-	PluginTypeNames PluginTypeNames
-	Paths           *ApplicationPaths
-}
-
 // ApplicationPaths contains all the path
 type ApplicationPaths struct {
 	//
@@ -304,7 +283,4 @@ type ApplicationPaths struct {
 	// - 🍎 Mac OS X:
 	// - 🪟 Windows:
 	MTLSHome string
-
-	// ln -s ~/.local/lib/amadla/amadla ~/.local/bin/amadla
-
 }
