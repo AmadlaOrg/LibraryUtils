@@ -9,6 +9,26 @@ packages:
           dir: "{{.InterfaceDir}}"
           mockName: "MockConfiguration"
           inpackage: True
+      IViper:
+        config:
+          dir: "{{.InterfaceDir}}"
+          mockName: "MockViper"
+          inpackage: True
+  github.com/AmadlaOrg/LibraryUtils/database/sqlite3:
+    interfaces:
+      IDatabase:
+        config:
+          dir: "{{.InterfaceDir}}"
+          mockName: "MockCacheDatabase"
+          inpackage: True
+      ISqlDb:
+        config:
+          dir: "{{.InterfaceDir}}"
+          mockName: "MockSqlDb"
+      ISqlTx:
+        config:
+          dir: "{{.InterfaceDir}}"
+          mockName: "MockSqlTx"
   github.com/AmadlaOrg/LibraryUtils/file:
     interfaces:
       IFile:

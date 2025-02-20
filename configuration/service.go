@@ -1,8 +1,9 @@
 package configuration
 
 import (
-	"github.com/spf13/viper"
 	"strings"
+
+	"github.com/spf13/viper"
 )
 
 var (
@@ -13,20 +14,19 @@ var (
 //
 // Params:
 // - 📇 appName - Is the of the application (normally all lowercase)
-func NewConfigurationService(appName string) IConfiguration {
+// - 📁 configDirPath - The configuration absolute path to its directory.
+func NewConfigurationService(appName, configDirPath string) IConfiguration {
 	newViper := viperNew()
 	newViper.SetEnvPrefix(strings.ToUpper(appName))
 	newViper.AutomaticEnv()
 	newViper.SetConfigName(appName)
 	newViper.SetConfigType("yaml")
 
-	newViper.AllKeys()
-
-	// TODO:
-	//newViper.AddConfigPath(".")
+	// Looks for config in the working directory
+	newViper.AddConfigPath(".")
+	newViper.AddConfigPath(configDirPath)
 
 	return &SConfiguration{
-		appName:       appName,
 		viperInstance: newViper,
 	}
 }
