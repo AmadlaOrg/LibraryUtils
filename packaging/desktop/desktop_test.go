@@ -8,6 +8,12 @@ import (
 	"testing"
 )
 
+func TestNewBuilder(t *testing.T) {
+	service := NewBuilder("mockname")
+	assert.NotNil(t, service)
+	assert.IsType(t, &Builder{}, service)
+}
+
 // FIXME:
 /*func Test_Build(t *testing.T) {
 	tests := []struct {
@@ -233,7 +239,7 @@ func Test_processContent(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			service := &SDesktop{builder: strings.Builder{}}
+			service := &Builder{builder: strings.Builder{}}
 			err := service.processContent(tt.propertyName, &tt.contentValues, tt.isNeeded)
 
 			if tt.expectedErr != nil {
@@ -287,7 +293,7 @@ func Test_processPropertyDefault(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			service := &SDesktop{builder: strings.Builder{}}
+			service := &Builder{builder: strings.Builder{}}
 			service.processPropertyDefault(tt.propertyName, tt.contentValue, tt.defaultValue)
 
 			assert.Equal(t, tt.expectedStr, service.builder.String())
@@ -336,7 +342,7 @@ func Test_processRequiredProperty(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Create a new SDesktop with a buffer
-			service := &SDesktop{builder: strings.Builder{}}
+			service := &Builder{builder: strings.Builder{}}
 			err := service.processRequiredProperty(tt.propertyName, tt.contentValue)
 
 			if tt.expectedErr != nil {
@@ -385,7 +391,7 @@ func Test_processNotRequiredProperty(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			service := &SDesktop{builder: strings.Builder{}}
+			service := &Builder{builder: strings.Builder{}}
 			service.processNotRequiredProperty(tt.propertyName, tt.contentValue)
 
 			assert.Equal(t, tt.expectedStr, service.builder.String())
@@ -454,7 +460,7 @@ func Test_processList(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			service := &SDesktop{builder: strings.Builder{}}
+			service := &Builder{builder: strings.Builder{}}
 			err := service.processList(tt.propertyName, tt.items, tt.isNeeded)
 
 			if tt.expectedErr != nil {
@@ -529,7 +535,7 @@ func Test_processCommaList(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			service := &SDesktop{builder: strings.Builder{}}
+			service := &Builder{builder: strings.Builder{}}
 			err := service.processCommaList(tt.propertyName, tt.items, tt.isNeeded)
 
 			if tt.expectedErr != nil {

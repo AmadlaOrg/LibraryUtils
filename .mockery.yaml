@@ -72,19 +72,19 @@ packages:
           dir: "{{.InterfaceDir}}"
           mockName: "MockLocation"
           inpackage: True
-  github.com/AmadlaOrg/LibraryUtils/tools/desktop:
+  github.com/AmadlaOrg/LibraryUtils/packaging/desktop:
     interfaces:
-      IDesktop:
+      Generator:
         config:
           dir: "{{.InterfaceDir}}"
-          mockName: "MockToolsDesktop"
+          mockName: MockPackagingDesktop
           inpackage: True
-  github.com/AmadlaOrg/LibraryUtils/tools/document:
+  github.com/AmadlaOrg/LibraryUtils/packaging/document:
     interfaces:
       IDocument:
         config:
           dir: "{{.InterfaceDir}}"
-          mockName: "MockToolsDocument"
+          mockName: MockPackagingDocument
           inpackage: True
   io/fs:
     interfaces:

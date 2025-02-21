@@ -11,14 +11,8 @@ import (
 	"github.com/AmadlaOrg/LibraryUtils/pointer"
 )
 
-// IDesktop 🧩 Is the interface for the NewDesktopService.
-type IDesktop interface {
-	Build(desktop *Desktop) (IDesktop, error)
-	Save(dirPath string) error
-}
-
-// SDesktop 🏛️ Is the main structure for the NewDesktopService.
-type SDesktop struct {
+// Builder 🏛️ Is the main structure for the NewDesktopService.
+type Builder struct {
 	// 📇 appName - Is the of the application (normally all lowercase).
 	appName string
 
@@ -31,7 +25,17 @@ var (
 	osWriteFile = os.WriteFile
 )
 
-// Build generates the content for the `.desktop` file format by processing each group in the provided `Desktop` object.
+// NewBuilder creates a new instance of DesktopBuilder.
+//
+// Params:
+// - 📇 appName - Is the of the application (normally all lowercase).
+func NewBuilder(appName string) Generator {
+	return &Builder{
+		appName: appName,
+	}
+}
+
+// Generate generates the content for the `.desktop` file format by processing each group in the provided `Desktop` object.
 // It builds sections and properties based on the `.desktop` specification.
 //
 // Params:
@@ -40,7 +44,7 @@ var (
 // Returns:
 // - IDesktop: The constructed desktop representation.
 // - 🚨 error: Returns an error if any required property is missing or incorrectly formatted.
-func (service *SDesktop) Build(desktop *Desktop) (IDesktop, error) {
+func (b *Builder) Generate(desktop *Desktop) (Generator, error) {
 	var (
 		groupNames []string
 	)
@@ -48,99 +52,51 @@ func (service *SDesktop) Build(desktop *Desktop) (IDesktop, error) {
 	groups := *desktop.Groups
 
 	for _, group := range groups {
-		//
-		// Section
-		//
-		var thisSectionName string
+		var thisGroupName string
 
 		if group.Title == nil ||
 			*group.Title == "" ||
 			*group.Title == defaultDesktopSectionName {
-			thisSectionName = fmt.Sprintf("[%s]\n", defaultDesktopSectionName)
+			thisGroupName = fmt.Sprintf("[%s]\n", defaultDesktopSectionName)
 		} else {
-			thisSectionName = fmt.Sprintf("[%s]\n", *group.Title)
+			thisGroupName = fmt.Sprintf("[%s]\n", *group.Title)
 		}
 
-		service.builder.WriteString(thisSectionName)
-		groupNames = append(groupNames, thisSectionName)
+		b.builder.WriteString(thisGroupName)
+		groupNames = append(groupNames, thisGroupName)
 
-		//
-		// Name
-		//
-		err := service.processContent("Name", group.Names, true)
+		err := b.processContent("Name", group.Names, true)
 		if err != nil {
 			return nil, err
 		}
-
-		//
-		// GenericNames
-		//
-		_ = service.processContent("GenericName", group.GenericNames, false)
-
-		//
-		// Comments
-		//
-		_ = service.processContent("Comment", group.Comments, false)
-
-		//
-		// Keywords
-		//
-		_ = service.processContent("Keywords", group.Keywords, false)
-
-		//
-		// Version
-		//
-		service.processPropertyDefault("Version", group.Version, "1.0")
-
-		//
-		// X-AppVersion
-		//
-		err = service.processRequiredProperty("X-AppVersion", group.XAppVersion)
+		_ = b.processContent("GenericName", group.GenericNames, false)
+		_ = b.processContent("Comment", group.Comments, false)
+		_ = b.processContent("Keywords", group.Keywords, false)
+		b.processPropertyDefault("Version", group.Version, "1.0")
+		err = b.processRequiredProperty("X-AppVersion", group.XAppVersion)
 		if err != nil {
 			return nil, err
 		}
+		b.processNotRequiredProperty("Icon", group.Icon)
+		_ = b.processList("Categories", group.Categories, false)
+		_ = b.processCommaList("X-KDE-Protocols", group.XKDEProtocols, false)
+		b.processNotRequiredProperty("Encoding", group.Encoding)
 
-		//
-		// Icon
-		//
-		service.processNotRequiredProperty("Icon", group.Icon)
-
-		//
-		// Categories
-		//
-		_ = service.processList("Categories", group.Categories, false)
-
-		//
-		// x-kde-protocols
-		//
-		_ = service.processCommaList("X-KDE-Protocols", group.XKDEProtocols, false)
-
-		//
-		// Encoding
-		//
-		service.processNotRequiredProperty("Encoding", group.Encoding)
-
-		//
-		// Terminal
-		//
-		service.processPropertyDefault(
+		b.processPropertyDefault(
 			"Terminal",
 			pointer.ToPtr(strconv.FormatBool(group.Terminal)),
 			"true")
 
-		//
-		// Type
-		//
 		if group.Type == nil || *group.Type == "" {
 			group.Type = (*Type)(pointer.ToPtr("Application"))
 		}
 
-		service.builder.WriteString(fmt.Sprintf("Type=%s\n", string(*group.Type)))
+		b.builder.WriteString(fmt.Sprintf("Type=%s\n", string(*group.Type)))
 		if *group.Type == ApplicationType {
 			//
 			// Exec
 			//
-			err = service.processRequiredProperty("Exec", &group.Exec)
+			err = b.processRequiredProperty("Exec", &group.Exec)
 			if err != nil {
 				return nil, err
 			}
@@ -148,22 +104,19 @@ func (service *SDesktop) Build(desktop *Desktop) (IDesktop, error) {
 			//
 			// Url
 			//
-			err = service.processRequiredProperty("Url", &group.URL)
+			err = b.processRequiredProperty("Url", &group.URL)
 			if err != nil {
 				return nil, err
 			}
 		}
 
-		//
-		// MimeType
-		//
-		_ = service.processList("MimeType", group.MimeType, false)
+		_ = b.processList("MimeType", group.MimeType, false)
 	}
 
-	return service, nil
+	return b, nil
 }
 
-// Save writes the generated `.desktop` content to a file in the specified directory.
+// WriteToFile writes the generated `.desktop` content to a file in the specified directory.
 // It ensures the directory exists before writing.
 //
 // Params:
@@ -171,17 +124,17 @@ func (service *SDesktop) Build(desktop *Desktop) (IDesktop, error) {
 //
 // Returns:
 // - 🚨 error: Returns an error if the directory cannot be created or if writing to the file fails.
-func (service *SDesktop) Save(dirPath string) error {
+func (b *Builder) WriteToFile(dirPath string) error {
 	err := osMkdirAll(dirPath, 0755)
 	if err != nil {
 		return fmt.Errorf("failed to create directory: %w", err)
 	}
 
 	// Construct the file path
-	filePath := filepath.Join(dirPath, fmt.Sprintf("%s.desktop", service.appName))
+	filePath := filepath.Join(dirPath, fmt.Sprintf("%s.desktop", b.appName))
 
 	// Get the .desktop content
-	desktopContent := service.builder.String()
+	desktopContent := b.builder.String()
 
 	// Write to the file
 	err = osWriteFile(filePath, []byte(desktopContent), 0644)
@@ -202,7 +155,7 @@ func (service *SDesktop) Save(dirPath string) error {
 //
 // Returns:
 // - 🚨 error: Returns an error if isNeeded is true and the property is not set properly.
-func (service *SDesktop) processContent(propertyName string, contentValues *[]Content, isNeeded bool) error {
+func (b *Builder) processContent(propertyName string, contentValues *[]Content, isNeeded bool) error {
 	var (
 		isSet         = false
 		isSetWithLang = false
@@ -211,10 +164,10 @@ func (service *SDesktop) processContent(propertyName string, contentValues *[]Co
 	for _, value := range *contentValues {
 		if value.Language == nil {
 			isSet = true
-			service.builder.WriteString(fmt.Sprintf("%s=%s\n", propertyName, value.Value))
+			b.builder.WriteString(fmt.Sprintf("%s=%s\n", propertyName, value.Value))
 		} else {
 			isSetWithLang = true
-			service.builder.WriteString(fmt.Sprintf("%s[%s]=%s\n", propertyName, *value.Language, value.Value))
+			b.builder.WriteString(fmt.Sprintf("%s[%s]=%s\n", propertyName, *value.Language, value.Value))
 		}
 	}
 
@@ -239,11 +192,11 @@ func (service *SDesktop) processContent(propertyName string, contentValues *[]Co
 // - 🏠 propertyName: The name of the property being processed.
 // - 💎 contentValue: A pointer to the string value of the property (maybe nil).
 // - ⚠️ defaultValue: The default value to use if contentValue is nil or empty.
-func (service *SDesktop) processPropertyDefault(propertyName string, contentValue *string, defaultValue string) {
+func (b *Builder) processPropertyDefault(propertyName string, contentValue *string, defaultValue string) {
 	if contentValue == nil || *contentValue == "" {
-		service.builder.WriteString(fmt.Sprintf("%s=%s\n", propertyName, defaultValue))
+		b.builder.WriteString(fmt.Sprintf("%s=%s\n", propertyName, defaultValue))
 	} else {
-		service.builder.WriteString(fmt.Sprintf("%s=%s\n", propertyName, *contentValue))
+		b.builder.WriteString(fmt.Sprintf("%s=%s\n", propertyName, *contentValue))
 	}
 }
 
@@ -256,9 +209,9 @@ func (service *SDesktop) processPropertyDefault(propertyName string, contentValu
 //
 // Returns:
 // - 🚨 error: Returns an error if contentValue is nil or empty.
-func (service *SDesktop) processRequiredProperty(propertyName string, contentValue *string) error {
+func (b *Builder) processRequiredProperty(propertyName string, contentValue *string) error {
 	if contentValue != nil && *contentValue != "" {
-		service.builder.WriteString(fmt.Sprintf("%s=%s\n", propertyName, *contentValue))
+		b.builder.WriteString(fmt.Sprintf("%s=%s\n", propertyName, *contentValue))
 		return nil
 	} else {
 		return fmt.Errorf("the property %s is required", propertyName)
@@ -272,9 +225,9 @@ func (service *SDesktop) processRequiredProperty(propertyName string, contentVal
 // Params:
 // - 🏠 propertyName: The name of the property being processed.
 // - 💎 contentValue: A pointer to the string value of the property (maybe nil).
-func (service *SDesktop) processNotRequiredProperty(propertyName string, contentValue *string) {
+func (b *Builder) processNotRequiredProperty(propertyName string, contentValue *string) {
 	if contentValue != nil && *contentValue != "" {
-		service.builder.WriteString(fmt.Sprintf("%s=%s\n", propertyName, *contentValue))
+		b.builder.WriteString(fmt.Sprintf("%s=%s\n", propertyName, *contentValue))
 	}
 }
 
@@ -288,19 +241,15 @@ func (service *SDesktop) processNotRequiredProperty(propertyName string, content
 //
 // Returns:
 // - 🚨 error: Returns an error if `isNeeded` is true and the list is empty.
-func (service *SDesktop) processList(propertyName string, items *[]List, isNeeded bool) error {
+func (b *Builder) processList(propertyName string, items *[]List, isNeeded bool) error {
 	if isNeeded && (items == nil || len(*items) == 0) {
 		return fmt.Errorf("the property %s is empty", propertyName)
 	}
 
 	if items != nil && len(*items) > 0 {
-		// Convert []List to []string
-		stringItems := make([]string, len(*items))
-		for i, item := range *items {
-			stringItems[i] = string(item) // Convert List to string
-		}
-
-		service.builder.WriteString(fmt.Sprintf("%s=%s\n", propertyName, strings.Join(stringItems, ";")))
+		processedString := fmt.Sprintf(
+			"%s=%s\n", propertyName, strings.Join(convertListToStrings(*items), ";"))
+		b.builder.WriteString(processedString)
 	}
 
 	return nil
@@ -316,19 +265,15 @@ func (service *SDesktop) processList(propertyName string, items *[]List, isNeede
 //
 // Returns:
 // - 🚨 error: Returns an error if `isNeeded` is true and the list is empty.
-func (service *SDesktop) processCommaList(propertyName string, items *[]CommaList, isNeeded bool) error {
+func (b *Builder) processCommaList(propertyName string, items *[]CommaList, isNeeded bool) error {
 	if isNeeded && (items == nil || len(*items) == 0) {
 		return fmt.Errorf("the property %s is empty", propertyName)
 	}
 
 	if items != nil && len(*items) > 0 {
-		// Convert []List to []string
-		stringItems := make([]string, len(*items))
-		for i, item := range *items {
-			stringItems[i] = string(item) // Convert List to string
-		}
-
-		service.builder.WriteString(fmt.Sprintf("%s=%s\n", propertyName, strings.Join(stringItems, ",")))
+		processedString := fmt.Sprintf(
+			"%s=%s\n", propertyName, strings.Join(convertListToStrings(*items), ","))
+		b.builder.WriteString(processedString)
 	}
 
 	return nil
