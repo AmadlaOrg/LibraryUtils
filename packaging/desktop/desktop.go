@@ -93,17 +93,11 @@ func (b *Builder) Generate(desktop *Desktop) (Generator, error) {
 
 		b.builder.WriteString(fmt.Sprintf("Type=%s\n", string(*group.Type)))
 		if *group.Type == ApplicationType {
-			//
-			// Exec
-			//
 			err = b.processRequiredProperty("Exec", &group.Exec)
 			if err != nil {
 				return nil, err
 			}
 		} else if *group.Type == LinkType {
-			//
-			// Url
-			//
 			err = b.processRequiredProperty("Url", &group.URL)
 			if err != nil {
 				return nil, err
