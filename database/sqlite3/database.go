@@ -1,12 +1,15 @@
-package database
+package sqlite3
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
-	_ "github.com/mattn/go-sqlite3"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 // IDatabase defines the database interface
@@ -27,16 +30,16 @@ type IDatabase interface {
 type SDatabase struct {
 	dbAbsPath   string
 	queries     *Queries
-	sqlDB       ISqlDb
+	sqlDB       IDatabaseSqlDB
 	initialized bool
 }
 
 // For mocking 🥸.
 var (
-	db          ISqlDb
+	db          IDatabaseSqlDB
 	dbMutex     sync.Mutex // sync.Locker
 	initialized bool
-	sqlOpen     = func(driverName, dataSourceName string) (ISqlDb, error) {
+	sqlOpen     = func(driverName, dataSourceName string) (IDatabaseSqlDB, error) {
 		return sql.Open(driverName, dataSourceName)
 	}
 	osRemove = os.Remove
@@ -257,68 +260,159 @@ func (s *SDatabase) Apply() error {
 		return fmt.Errorf("error starting transaction: %w", err)
 	}
 
-	// Merge all queries in the desired order.
-	var allQueries []string
-	for _, q := range s.queries.CreateTable {
-		allQueries = append(allQueries, q.Query)
-	}
-	for _, q := range s.queries.DropTable {
-		allQueries = append(allQueries, q.Query)
-	}
-	for _, q := range s.queries.Insert {
-		allQueries = append(allQueries, q.Query)
-	}
-	for _, q := range s.queries.Update {
-		allQueries = append(allQueries, q.Query)
-	}
-	for _, q := range s.queries.Delete {
-		allQueries = append(allQueries, q.Query)
-	}
-	for _, q := range s.queries.Select {
-		allQueries = append(allQueries, q.Query)
-	}
-
-	if len(allQueries) == 0 {
-		return fmt.Errorf("error no queries")
-	}
-
-	err = s.exec(sqlTx, allQueries)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// exec loops through all the queries and executes them
-func (s *SDatabase) exec(sqlTx ISqlTx, allQueries []string) error {
-	// Execute each query individually within the transaction.
-	// This approach is more flexible if you want to handle parameter binding or errors per query.
-	for _, queryString := range allQueries {
-		_, execErr := sqlTx.Exec(queryString)
-		if execErr != nil {
-			// Roll back the entire transaction on error
-			rbErr := sqlTx.Rollback()
-			if rbErr != nil {
-				return fmt.Errorf("error rolling back transaction: %w (original error: %v)", rbErr, execErr)
+	/*
+		for _, q := range s.queries.DropTable {
+			_, err = s.exec(sqlTx, q.Query, q.Values)
+			if err != nil {
+				return err
 			}
-			return fmt.Errorf("error applying query (%s): %w", queryString, execErr)
+			//allQueries = append(allQueries, q.Query)
+		}*/
+
+	// Execute CREATE TABLE queries directly (no values binding)
+	for _, q := range s.queries.CreateTable {
+		_, err = sqlTx.Exec(q.Query)
+		if err != nil {
+			err := sqlTx.Rollback()
+			if err != nil {
+				return err
+			} // Rollback transaction if there's an error
+			return fmt.Errorf("error creating table: %w", err)
 		}
 	}
 
-	// If all queries succeeded, commit the transaction
-	if err := sqlTx.Commit(); err != nil {
+	// Execute other queries with values
+	queryTypes := []*[]Query{
+		&s.queries.Insert,
+		&s.queries.Update,
+		&s.queries.Delete,
+	}
+
+	for _, querySet := range queryTypes {
+		for _, q := range *querySet {
+			dbResult, err := s.exec(sqlTx, q.Query, q.Values)
+			if err != nil {
+				err := sqlTx.Rollback()
+				if err != nil {
+					return err
+				} // Rollback if any query fails
+				return err
+			}
+			lastInsertId, err := dbResult.LastInsertId()
+			if err != nil {
+				return err
+			}
+			q.Result = strconv.FormatInt(lastInsertId, 10)
+		}
+	}
+
+	// Handle SELECT queries separately
+	for _, q := range s.queries.Select {
+		q.Result, err = s.querySelect(sqlTx, q.Query, q.Values)
+		if err != nil {
+			err := sqlTx.Rollback()
+			if err != nil {
+				return err
+			}
+			return err
+		}
+	}
+
+	// **Commit transaction once after all queries execute**
+	if err = sqlTx.Commit(); err != nil {
+		err = sqlTx.Rollback()
+		if err != nil {
+			return err
+		} // Ensure rollback on commit failure
 		return fmt.Errorf("error committing transaction: %w", err)
 	}
 
 	// Optionally, clear the queries after applying
-	s.queries = &Queries{
+	/*s.queries = &Queries{
 		CreateTable: []Query{},
 		DropTable:   []Query{},
 		Insert:      []Query{},
 		Update:      []Query{},
 		Delete:      []Query{},
 		Select:      []Query{},
-	}
+	}*/
+
 	return nil
+}
+
+// exec loops through all the queries and executes them
+func (s *SDatabase) exec(sqlTx IDatabaseSqlTx, query string, values []any) (sql.Result, error) {
+	dbResult, err := sqlTx.Exec(query, values...)
+	if err != nil {
+		// Roll back the entire transaction on error
+		rbErr := sqlTx.Rollback()
+		if rbErr != nil {
+			return nil, fmt.Errorf("error rolling back transaction: %w (original error: %v)", rbErr, err)
+		}
+		return nil, fmt.Errorf("error applying query (%s): %w", query, err)
+	}
+	return dbResult, nil
+}
+
+func (s *SDatabase) querySelect(sqlTx IDatabaseSqlTx, query string, values []any) (string, error) {
+
+	//exec, err := db
+	//if err != nil {
+	//	return "", err
+	//}
+
+	rows, err := sqlTx.Query(query, values...)
+	if err != nil {
+		return "", fmt.Errorf("error executing SELECT query (%s): %w", query, err)
+	}
+	defer rows.Close()
+
+	// Get column names
+	columns, err := rows.Columns()
+	if err != nil {
+		return "", fmt.Errorf("error fetching column names: %w", err)
+	}
+
+	// Prepare a slice to store the results
+	var results []map[string]interface{}
+
+	// Iterate over rows
+	for rows.Next() {
+		// Create a slice of `interface{}` to hold each column value
+		values := make([]interface{}, len(columns))
+		valuePtrs := make([]interface{}, len(columns))
+
+		// Assign pointers to values slice
+		for i := range values {
+			valuePtrs[i] = &values[i]
+		}
+
+		// Scan the row into value pointers
+		if err := rows.Scan(valuePtrs...); err != nil {
+			return "", fmt.Errorf("error scanning row: %w", err)
+		}
+
+		// Convert values to a map
+		rowMap := make(map[string]interface{})
+		for i, colName := range columns {
+			val := values[i]
+
+			// Convert `[]byte` to string if necessary
+			if b, ok := val.([]byte); ok {
+				val = string(b)
+			}
+
+			rowMap[colName] = val
+		}
+
+		results = append(results, rowMap)
+	}
+
+	// Convert results to JSON
+	jsonData, err := json.Marshal(results)
+	if err != nil {
+		return "", fmt.Errorf("error converting result to JSON: %w", err)
+	}
+
+	return string(jsonData), nil
 }

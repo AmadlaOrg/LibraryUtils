@@ -1,9 +1,14 @@
-package database
+package sqlite3
 
 import (
-	"github.com/stretchr/testify/assert"
+	_ "embed"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
+
+//go:embed testdata/tables.sql
+var sqlTables string
 
 func Test_Integration_IsInitialized_is_true(t *testing.T) {
 	databaseService := NewDatabaseService("/tmp/test-integration-IsInitialized-is-true.db")
@@ -25,7 +30,7 @@ func Test_Integration_CreateTable(t *testing.T) {
 	err := databaseService.Initialize()
 	assert.NoError(t, err)
 
-	databaseService.CreateTable()
+	databaseService.CreateTable(&sqlTables)
 	err = databaseService.Apply()
 	if err != nil {
 		t.Errorf("Failed to apply database %v", err)
@@ -45,28 +50,27 @@ func Test_Integration_Insert(t *testing.T) {
 	err := databaseService.Initialize()
 	assert.NoError(t, err)
 
-	databaseService.CreateTable()
+	databaseService.CreateTable(&sqlTables)
 	err = databaseService.Apply()
 	if err != nil {
 		t.Errorf("Failed to apply database %v", err)
 	}
 
 	entitiesTable := Table{
-		Name: "entities",
+		Name: "content",
 		Rows: []Row{
 			{
-				"uri":               "github.com/AmadlaOrg/EntityApplication/WebServer@v1.0.0",
-				"name":              "WebServer",
-				"repo_url":          "https://github.com/AmadlaOrg/EntityApplication",
-				"origin":            "github.com/AmadlaOrg/EntityApplication",
-				"version":           "v1.0.0",
-				"is_latest_version": true,
-				"is_pseudo_version": false,
-				"abs_path":          "/home/user/.hery/amadla/entity/github.com/AmadlaOrg/EntityApplication/WebServer@v1.0.0",
-				"have":              true,
-				"hash":              "",
-				"exist":             true,
-				"schema_json":       "{}",
+				"txt":  "Some text.",
+				"num":  1091,
+				"bool": true,
+				"real": 91.01,
+			},
+			{
+				"txt":  "Some text 2.",
+				"num":  1891,
+				"bool": false,
+				"real": 98.0001,
+				// TODO: add datetime
 			},
 		},
 	}

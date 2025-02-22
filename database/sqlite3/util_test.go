@@ -1,4 +1,4 @@
-package database
+package sqlite3
 
 import (
 	"github.com/AmadlaOrg/LibraryUtils/pointer"

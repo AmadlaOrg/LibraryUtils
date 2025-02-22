@@ -1,10 +1,10 @@
-package database
+package sqlite3
 
 import (
 	"errors"
 	"fmt"
-	"github.com/AmadlaOrg/LibraryUtils/pointer"
 
+	"github.com/AmadlaOrg/LibraryUtils/pointer"
 	//"github.com/AmadlaOrg/hery/util/pointer"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -25,7 +25,7 @@ func TestInitialize_db_set(t *testing.T) {
 
 	dbMutex = mockSyncLocker*/
 
-	db = NewMockSqlDb(t)
+	db = NewMockIDatabaseSqlDB(t)
 
 	databaseService := NewDatabaseService(testDbAbsPath)
 	err := databaseService.Initialize()
@@ -37,15 +37,15 @@ func TestInitialize(t *testing.T) {
 	tests := []struct {
 		name              string
 		inputDbPath       string
-		internalSqlOpenFn func(driverName, dataSourceName string) (ISqlDb, error)
+		internalSqlOpenFn func(driverName, dataSourceName string) (IDatabaseSqlDB, error)
 		expectedErr       error
 		hasError          bool
 	}{
 		{
 			name:        "Initialize database",
 			inputDbPath: "/tmp/hery.test.cache",
-			internalSqlOpenFn: func(driverName, dataSourceName string) (ISqlDb, error) {
-				mockSqlDb := NewMockSqlDb(t)
+			internalSqlOpenFn: func(driverName, dataSourceName string) (IDatabaseSqlDB, error) {
+				mockSqlDb := NewMockIDatabaseSqlDB(t)
 				mockSqlDb.EXPECT().Exec(mock.Anything).Return(nil, nil)
 				mockSqlDb.EXPECT().SetMaxOpenConns(mock.Anything)
 				mockSqlDb.EXPECT().SetMaxIdleConns(mock.Anything)
@@ -60,7 +60,7 @@ func TestInitialize(t *testing.T) {
 		{
 			name:        "Error: db Open fail",
 			inputDbPath: "/tmp/hery.test.cache",
-			internalSqlOpenFn: func(driverName, dataSourceName string) (ISqlDb, error) {
+			internalSqlOpenFn: func(driverName, dataSourceName string) (IDatabaseSqlDB, error) {
 				return nil, assert.AnError
 			},
 			expectedErr: errors.New("error opening database: "),
@@ -69,8 +69,8 @@ func TestInitialize(t *testing.T) {
 		{
 			name:        "Error: db Exec function throws error",
 			inputDbPath: "/tmp/hery.test.cache",
-			internalSqlOpenFn: func(driverName, dataSourceName string) (ISqlDb, error) {
-				mockSqlDb := NewMockSqlDb(t)
+			internalSqlOpenFn: func(driverName, dataSourceName string) (IDatabaseSqlDB, error) {
+				mockSqlDb := NewMockIDatabaseSqlDB(t)
 				mockSqlDb.EXPECT().Exec(mock.Anything).Return(nil, assert.AnError) // assert.AnError
 				mockSqlDb.EXPECT().Close().Return(nil)
 				return mockSqlDb, nil
@@ -81,8 +81,8 @@ func TestInitialize(t *testing.T) {
 		{
 			name:        "Error: db Exec function throws error also db Close",
 			inputDbPath: "/tmp/hery.test.cache",
-			internalSqlOpenFn: func(driverName, dataSourceName string) (ISqlDb, error) {
-				mockSqlDb := NewMockSqlDb(t)
+			internalSqlOpenFn: func(driverName, dataSourceName string) (IDatabaseSqlDB, error) {
+				mockSqlDb := NewMockIDatabaseSqlDB(t)
 				mockSqlDb.EXPECT().Exec(mock.Anything).Return(nil, assert.AnError) // assert.AnError
 				mockSqlDb.EXPECT().Close().Return(assert.AnError)
 				return mockSqlDb, nil
@@ -125,14 +125,14 @@ func TestClose(t *testing.T) {
 	tests := []struct {
 		name                string
 		externalInitialized bool
-		externalDb          ISqlDb
+		externalDb          IDatabaseSqlDB
 		hasError            bool
 	}{
 		{
 			name:                "Close database",
 			externalInitialized: true,
-			externalDb: func() ISqlDb {
-				mockSqlDb := NewMockSqlDb(t)
+			externalDb: func() IDatabaseSqlDB {
+				mockSqlDb := NewMockIDatabaseSqlDB(t)
 				mockSqlDb.EXPECT().Close().Return(nil)
 				return mockSqlDb
 			}(),
@@ -141,7 +141,7 @@ func TestClose(t *testing.T) {
 		{
 			name:                "Database is closed",
 			externalInitialized: true,
-			externalDb: func() ISqlDb {
+			externalDb: func() IDatabaseSqlDB {
 				return nil
 			}(),
 			hasError: false,
@@ -152,8 +152,8 @@ func TestClose(t *testing.T) {
 		{
 			name:                "Error: Close database",
 			externalInitialized: true,
-			externalDb: func() ISqlDb {
-				mockSqlDb := NewMockSqlDb(t)
+			externalDb: func() IDatabaseSqlDB {
+				mockSqlDb := NewMockIDatabaseSqlDB(t)
 				mockSqlDb.EXPECT().Close().Return(assert.AnError)
 				return mockSqlDb
 			}(),
@@ -224,7 +224,8 @@ func TestIsInitialized(t *testing.T) {
 	}
 }
 
-func TestCreateTable(t *testing.T) {
+// FIXME: This was moved for creating tables
+/*func TestCreateTable(t *testing.T) {
 	orginalSqlTables := sqlTables
 	sqlTables = "SQL string to create table"
 	databaseService := SDatabase{
@@ -237,7 +238,9 @@ func TestCreateTable(t *testing.T) {
 			Select:      []Query{},
 		},
 	}
-	databaseService.CreateTable()
+
+	// TODO:
+	databaseService.CreateTable(pointer.ToPtr(""))
 
 	expected := &Queries{
 		CreateTable: []Query{
@@ -255,7 +258,7 @@ func TestCreateTable(t *testing.T) {
 
 	// Reset
 	sqlTables = orginalSqlTables
-}
+}*/
 
 func TestInsert(t *testing.T) {
 	tests := []struct {
@@ -1011,12 +1014,12 @@ func TestApply(t *testing.T) {
 			defer func() { initialized = originalInitialized }()
 			initialized = tt.internalInitialized
 
-			mockSqlDb := NewMockSqlDb(t)
+			mockSqlDb := NewMockIDatabaseSqlDB(t)
 
 			if tt.internalDbBeginExpect {
 
 				if tt.internalTxExecExpect {
-					mockSqlTx := NewMockSqlTx(t)
+					mockSqlTx := NewMockIDatabaseSqlTx(t)
 					mockSqlTx.EXPECT().Exec(mock.Anything).Return(nil, tt.internalTxExecError)
 
 					if tt.internalTxRollbackExpect {

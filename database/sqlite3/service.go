@@ -1,4 +1,4 @@
-package database
+package sqlite3
 
 // NewDatabaseService to set up the entity Cache service
 func NewDatabaseService(dbAbsPath string) IDatabase {

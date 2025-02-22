@@ -21,14 +21,86 @@ packages:
           dir: "{{.InterfaceDir}}"
           mockName: "MockCacheDatabase"
           inpackage: True
-      ISqlDb:
+      IDatabaseSqlNullString:
         config:
           dir: "{{.InterfaceDir}}"
-          mockName: "MockSqlDb"
-      ISqlTx:
+          mockName: MockIDatabaseSqlNullString
+      IDatabaseSqlNullInt64:
         config:
           dir: "{{.InterfaceDir}}"
-          mockName: "MockSqlTx"
+          mockName: MockIDatabaseSqlNullInt64
+      IDatabaseSqlNullInt32:
+        config:
+          dir: "{{.InterfaceDir}}"
+          mockName: MockIDatabaseSqlNullInt32
+      IDatabaseSqlNullInt16:
+        config:
+          dir: "{{.InterfaceDir}}"
+          mockName: MockIDatabaseSqlNullInt16
+      IDatabaseSqlNullByte:
+        config:
+          dir: "{{.InterfaceDir}}"
+          mockName: MockIDatabaseSqlNullByte
+      IDatabaseSqlNullFloat64:
+        config:
+          dir: "{{.InterfaceDir}}"
+          mockName: MockIDatabaseSqlNullFloat64
+      IDatabaseSqlNullBool:
+        config:
+          dir: "{{.InterfaceDir}}"
+          mockName: MockIDatabaseSqlNullBool
+      IDatabaseSqlNullTime:
+        config:
+          dir: "{{.InterfaceDir}}"
+          mockName: MockIDatabaseSqlNullTime
+      IDatabaseSqlNull:
+        config:
+          dir: "{{.InterfaceDir}}"
+          mockName: MockIDatabaseSqlNull
+      IDatabaseSqlDriverStmt:
+        config:
+          dir: "{{.InterfaceDir}}"
+          mockName: MockIDatabaseSqlDriverStmt
+      IDatabaseSqlDsnConnector:
+        config:
+          dir: "{{.InterfaceDir}}"
+          mockName: MockIDatabaseSqlDsnConnector
+      IDatabaseSqlDB:
+        config:
+          dir: "{{.InterfaceDir}}"
+          mockName: MockIDatabaseSqlDB
+      IDatabaseSqlConn:
+        config:
+          dir: "{{.InterfaceDir}}"
+          mockName: MockIDatabaseSqlConn
+      IDatabaseSqlTx:
+        config:
+          dir: "{{.InterfaceDir}}"
+          mockName: MockIDatabaseSqlTx
+      IDatabaseSqlStmt:
+        config:
+          dir: "{{.InterfaceDir}}"
+          mockName: MockIDatabaseSqlStmt
+      IDatabaseSqlRows:
+        config:
+          dir: "{{.InterfaceDir}}"
+          mockName: MockIDatabaseSqlRows
+      IDatabaseSqlColumnType:
+        config:
+          dir: "{{.InterfaceDir}}"
+          mockName: MockIDatabaseSqlColumnType
+      IDatabaseSqlRow:
+        config:
+          dir: "{{.InterfaceDir}}"
+          mockName: MockIDatabaseSqlRow
+      IDatabaseSqlConnRequestSet:
+        config:
+          dir: "{{.InterfaceDir}}"
+          mockName: MockIDatabaseSqlConnRequestSet
+      IGoSqlite3SQLiteConn:
+        config:
+          dir: "{{.InterfaceDir}}"
+          mockName: MockIGoSqlite3SQLiteConn
   github.com/AmadlaOrg/LibraryUtils/file:
     interfaces:
       IFile:
@@ -86,6 +158,20 @@ packages:
           dir: "{{.InterfaceDir}}"
           mockName: MockPackagingDocument
           inpackage: True
+  database/sql:
+    interfaces:
+      Scanner:
+        config:
+          dir: database/sqlite3
+          mockName: MockDatabaseSqlScanner
+          inpackage: False
+          outpkg: sqlite3
+      Result:
+        config:
+          dir: database/sqlite3
+          mockName: MockDatabaseSqlResult
+          inpackage: False
+          outpkg: sqlite3
   io/fs:
     interfaces:
       FileInfo:

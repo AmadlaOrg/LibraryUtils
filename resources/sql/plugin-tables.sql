@@ -28,8 +28,8 @@ CREATE TABLE IF NOT EXISTS plugins (
 
 CREATE INDEX IF NOT EXISTS idx_plugins_name ON plugins(Name);
 CREATE INDEX IF NOT EXISTS idx_plugins_repo_url ON plugins(repo_url);
-CREATE INDEX IF NOT EXISTS idx_plugins_version ON plugins(Version);
-CREATE INDEX IF NOT EXISTS idx_plugins_exist ON plugins(Exist);
+CREATE INDEX IF NOT EXISTS idx_plugins_version ON plugins(version);
+CREATE INDEX IF NOT EXISTS idx_plugins_exist ON plugins(exist);
 CREATE INDEX IF NOT EXISTS idx_plugins_is_latest_version ON plugins(is_latest_version);
 CREATE INDEX IF NOT EXISTS idx_plugins_is_pseudo_version ON plugins(is_pseudo_version);
-CREATE INDEX IF NOT EXISTS idx_plugins_have ON plugins(Have);
+CREATE INDEX IF NOT EXISTS idx_plugins_have ON plugins(have);
