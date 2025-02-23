@@ -145,19 +145,14 @@ const (
 var validColumnNameRegex = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]*$`)
 
 // Table is a basic representation in a struct of a table in a SQL DB
-type Table struct {
-	Name          string
-	Columns       []Column
-	Relationships []Relationship
-	Rows          []Row
-}
+type Table string
 
 // Column is a basic representation in a struct of a column in a SQL DB
-type Column struct {
+/*type Column struct {
 	ColumnName  string
 	DataType    DataType
 	Constraints []Constraint
-}
+}*/
 
 // Relationship so to create relationships
 type Relationship struct {
@@ -165,6 +160,8 @@ type Relationship struct {
 	ReferencesTableName  string
 	ReferencesColumnName string
 }
+
+type Rows []Row
 
 // Row is where the data is being passed compared to the structure in the Column struct
 type Row = map[string]any
@@ -273,5 +270,10 @@ type Queries struct {
 type Query struct {
 	Query  string
 	Values []any
-	Result string
+	Result any
+}
+
+type SqlResult struct {
+	LastInsertId int64
+	RowsAffected int64
 }

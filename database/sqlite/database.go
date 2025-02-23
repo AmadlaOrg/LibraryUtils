@@ -2,7 +2,6 @@ package sqlite
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -19,12 +18,12 @@ type IDatabase interface {
 	Close() error
 	IsInitialized() bool
 	CreateTable(sqlTables *string)
-	Insert(table Table)
-	Update(table Table, where []Condition)
-	Select(table Table, clauses SelectClauses, joinClauses []JoinClauses)
-	Delete(table Table, clauses SelectClauses)
+	Insert(tableName Table, rows Rows)
+	Update(tableName Table, rows Rows, where []Condition)
+	Select(tableName Table, clauses SelectClauses, joinClauses []JoinClauses)
+	Delete(tableName Table, clauses SelectClauses)
 	DeleteDb() error
-	Apply() error
+	Apply() (*Queries, error)
 }
 
 // SDatabase implements IDatabase
@@ -124,14 +123,14 @@ func (s *SDatabase) IsInitialized() bool {
 
 func (s *SDatabase) query(
 	addTo *[]Query,
-	table Table,
-	buildQueryFunc func(table Table, columnNames, valuesPlaceholder []string) string,
+	rows Rows,
+	buildQueryFunc func(rows Rows, columnNames, valuesPlaceholder []string) string,
 ) {
-	for _, row := range table.Rows {
+	for _, row := range rows {
 		columnNames, valuesPlaceholder, columnValues := processRow(row)
 
 		// Build the query using the provided function
-		query := buildQueryFunc(table, columnNames, valuesPlaceholder)
+		query := buildQueryFunc(rows, columnNames, valuesPlaceholder)
 
 		// Add the query to the queries list
 		s.addQuery(addTo, query, columnValues)
@@ -152,14 +151,14 @@ func (s *SDatabase) CreateTable(sqlTables *string) {
 }
 
 // Insert inserts records into the table
-func (s *SDatabase) Insert(table Table) {
+func (s *SDatabase) Insert(tableName Table, rows Rows) {
 	s.query(
 		&s.queries.Insert,
-		table,
-		func(table Table, columnNames, valuesPlaceholder []string) string {
+		rows,
+		func(rows Rows, columnNames, valuesPlaceholder []string) string {
 			var b strings.Builder
 			b.WriteString("INSERT INTO ")
-			b.WriteString(table.Name)
+			b.WriteString(string(tableName))
 			b.WriteString(" (")
 			b.WriteString(strings.Join(columnNames, ", "))
 			b.WriteString(") VALUES (")
@@ -171,14 +170,14 @@ func (s *SDatabase) Insert(table Table) {
 }
 
 // Update updates a record in the table
-func (s *SDatabase) Update(table Table, where []Condition) {
+func (s *SDatabase) Update(tableName Table, rows Rows, where []Condition) {
 	s.query(
 		&s.queries.Update,
-		table,
-		func(table Table, columnNames, valuesPlaceholder []string) string {
+		rows,
+		func(rows Rows, columnNames, valuesPlaceholder []string) string {
 			var b strings.Builder
 			b.WriteString("UPDATE ")
-			b.WriteString(table.Name)
+			b.WriteString(string(tableName))
 			b.WriteString(" SET ")
 
 			var updates []string
@@ -195,11 +194,11 @@ func (s *SDatabase) Update(table Table, where []Condition) {
 }
 
 // Select retrieves a record from the table
-func (s *SDatabase) Select(table Table, clauses SelectClauses, joinClauses []JoinClauses) {
+func (s *SDatabase) Select(tableName Table, clauses SelectClauses, joinClauses []JoinClauses) {
 	// Build the SELECT query
 	var b strings.Builder
 	b.WriteString("SELECT * FROM ")
-	b.WriteString(table.Name)
+	b.WriteString(string(tableName))
 
 	// Build JOIN clauses, if any
 	if joinClauses != nil {
@@ -229,10 +228,10 @@ func (s *SDatabase) Select(table Table, clauses SelectClauses, joinClauses []Joi
 }
 
 // Delete deletes records from the table
-func (s *SDatabase) Delete(table Table, clauses SelectClauses) {
+func (s *SDatabase) Delete(tableName Table, clauses SelectClauses) {
 	var b strings.Builder
 	b.WriteString("DELETE FROM ")
-	b.WriteString(table.Name)
+	b.WriteString(string(tableName))
 	b.WriteString(buildWhere(clauses.Where))
 	b.WriteString(";")
 
@@ -262,15 +261,15 @@ func (s *SDatabase) DeleteDb() error {
 //
 // Returns:
 // - 🚨 error:
-func (s *SDatabase) Apply() error {
+func (s *SDatabase) Apply() (*Queries, error) {
 	if !s.IsInitialized() {
-		return fmt.Errorf(ErrorDatabaseNotInitialized)
+		return nil, fmt.Errorf(ErrorDatabaseNotInitialized)
 	}
 
 	// Begin a transaction
 	sqlTx, err := db.Begin()
 	if err != nil {
-		return fmt.Errorf("error starting transaction: %w", err)
+		return nil, fmt.Errorf("error starting transaction: %w", err)
 	}
 
 	/*
@@ -288,9 +287,9 @@ func (s *SDatabase) Apply() error {
 		if err != nil {
 			err := sqlTx.Rollback()
 			if err != nil {
-				return err
+				return nil, err
 			} // Rollback transaction if there's an error
-			return fmt.Errorf("error creating table: %w", err)
+			return nil, fmt.Errorf("error creating table: %w", err)
 		}
 	}
 
@@ -307,27 +306,27 @@ func (s *SDatabase) Apply() error {
 			if err != nil {
 				err := sqlTx.Rollback()
 				if err != nil {
-					return err
+					return nil, err
 				} // Rollback if any query fails
-				return err
+				return nil, err
 			}
 			lastInsertId, err := dbResult.LastInsertId()
 			if err != nil {
-				return err
+				return nil, err
 			}
 			q.Result = strconv.FormatInt(lastInsertId, 10)
 		}
 	}
 
 	// Handle SELECT queries separately
-	for _, q := range s.queries.Select {
-		q.Result, err = s.querySelect(sqlTx, q.Query, q.Values)
+	for qi, q := range s.queries.Select {
+		s.queries.Select[qi].Result, err = s.querySelect(sqlTx, q.Query, q.Values)
 		if err != nil {
 			err := sqlTx.Rollback()
 			if err != nil {
-				return err
+				return nil, err
 			}
-			return err
+			return nil, err
 		}
 	}
 
@@ -335,9 +334,9 @@ func (s *SDatabase) Apply() error {
 	if err = sqlTx.Commit(); err != nil {
 		err = sqlTx.Rollback()
 		if err != nil {
-			return err
+			return nil, err
 		} // Ensure rollback on commit failure
-		return fmt.Errorf("error committing transaction: %w", err)
+		return nil, fmt.Errorf("error committing transaction: %w", err)
 	}
 
 	// Optionally, clear the queries after applying
@@ -350,7 +349,7 @@ func (s *SDatabase) Apply() error {
 		Select:      []Query{},
 	}*/
 
-	return nil
+	return s.queries, nil
 }
 
 // exec loops through all the queries and executes them.
@@ -386,7 +385,7 @@ func (s *SDatabase) exec(sqlTx IDatabaseSqlTx, query string, values []any) (sql.
 // Returns:
 // -
 // - 🚨 error:
-func (s *SDatabase) querySelect(sqlTx IDatabaseSqlTx, query string, values []any) (string, error) {
+func (s *SDatabase) querySelect(sqlTx IDatabaseSqlTx, query string, values []any) (any, error) {
 	rows, err := sqlTx.Query(query, values...)
 	if err != nil {
 		return "", fmt.Errorf("error executing SELECT query (%s): %w", query, err)
@@ -405,13 +404,13 @@ func (s *SDatabase) querySelect(sqlTx IDatabaseSqlTx, query string, values []any
 	}
 
 	// Prepare a slice to store the results
-	var results []map[string]interface{}
+	var results []map[string]any
 
 	// Iterate over rows
 	for rows.Next() {
-		// Create a slice of `interface{}` to hold each column value
-		values := make([]interface{}, len(columns))
-		valuePtrs := make([]interface{}, len(columns))
+		// Create a slice of `any` to hold each column value
+		values := make([]any, len(columns))
+		valuePtrs := make([]any, len(columns))
 
 		// Assign pointers to values slice
 		for i := range values {
@@ -424,7 +423,7 @@ func (s *SDatabase) querySelect(sqlTx IDatabaseSqlTx, query string, values []any
 		}
 
 		// Convert values to a map
-		rowMap := make(map[string]interface{})
+		rowMap := make(map[string]any)
 		for i, colName := range columns {
 			val := values[i]
 
@@ -439,11 +438,13 @@ func (s *SDatabase) querySelect(sqlTx IDatabaseSqlTx, query string, values []any
 		results = append(results, rowMap)
 	}
 
+	return results, nil
+
 	// Convert results to JSON
-	jsonData, err := json.Marshal(results)
+	/*jsonData, err := json.Marshal(results)
 	if err != nil {
 		return "", fmt.Errorf("error converting result to JSON: %w", err)
 	}
 
-	return string(jsonData), nil
+	return string(jsonData), nil*/
 }

@@ -264,36 +264,16 @@ func TestInsert(t *testing.T) {
 	tests := []struct {
 		name       string
 		inputTable Table
+		inputRows  Rows
 	}{
 		{
-			name: "Test Insert",
-			inputTable: Table{
-				Name: "Net",
-				Columns: []Column{
-					{
-						ColumnName: "Id",
-						DataType:   "TEXT",
-						Constraints: []Constraint{
-							{
-								Type: ConstraintPrimaryKey,
-							},
-						},
-					},
-					{
-						ColumnName: "server_name",
-						DataType:   "TEXT",
-					},
-					{
-						ColumnName: "listen",
-						DataType:   "TEXT",
-					},
-				},
-				Rows: []map[string]any{
-					{
-						"Id":          "c6beaec1-90c4-4d2a-aaef-211ab00b86bd",
-						"server_name": "localhost",
-						"listen":      "[80, 443]",
-					},
+			name:       "Test Insert",
+			inputTable: "Net",
+			inputRows: []map[string]any{
+				{
+					"Id":          "c6beaec1-90c4-4d2a-aaef-211ab00b86bd",
+					"server_name": "localhost",
+					"listen":      "[80, 443]",
 				},
 			},
 		},
@@ -302,7 +282,7 @@ func TestInsert(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			databaseService := NewDatabaseService(testDbAbsPath)
-			databaseService.Insert(tt.inputTable)
+			databaseService.Insert(tt.inputTable, tt.inputRows)
 		})
 	}
 }
@@ -452,7 +432,8 @@ func TestUpdate(t *testing.T) {
 					Select:      []Query{},
 				},
 			}
-			databaseService.Update(tt.inputTable, []Condition{
+			// TODO:
+			databaseService.Update(tt.inputTable, Rows{}, []Condition{
 				{Column: "Id", Operator: "=", Value: "c6beaec1-90c4-4d2a-aaef-211ab00b86bd"},
 				{Column: "server_name", Operator: "LIKE", Value: "localhost"},
 				{Column: "listen", Operator: "IN", Value: "[80, 443]"},
@@ -471,10 +452,8 @@ func TestSelect(t *testing.T) {
 		expected         []Query
 	}{
 		{
-			name: "Test Select: one condition",
-			inputTable: Table{
-				Name: "mock_table_name",
-			},
+			name:       "Test Select: one condition",
+			inputTable: "mock_table_name",
 			inputClauses: SelectClauses{
 				Where: []Condition{
 					{
@@ -491,10 +470,8 @@ func TestSelect(t *testing.T) {
 			},
 		},
 		{
-			name: "Test Select: two conditions",
-			inputTable: Table{
-				Name: "mock_table_name",
-			},
+			name:       "Test Select: two conditions",
+			inputTable: "mock_table_name",
 			inputClauses: SelectClauses{
 				Where: []Condition{
 					{
@@ -516,10 +493,8 @@ func TestSelect(t *testing.T) {
 			},
 		},
 		{
-			name: "Test Select: two conditions and limit 10",
-			inputTable: Table{
-				Name: "mock_table_name",
-			},
+			name:       "Test Select: two conditions and limit 10",
+			inputTable: "mock_table_name",
 			inputClauses: SelectClauses{
 				Where: []Condition{
 					{
@@ -542,10 +517,8 @@ func TestSelect(t *testing.T) {
 			},
 		},
 		{
-			name: "Test Select: two conditions and limit 10 with offset 5",
-			inputTable: Table{
-				Name: "mock_table_name",
-			},
+			name:       "Test Select: two conditions and limit 10 with offset 5",
+			inputTable: "mock_table_name",
 			inputClauses: SelectClauses{
 				Where: []Condition{
 					{
@@ -569,10 +542,8 @@ func TestSelect(t *testing.T) {
 			},
 		},
 		{
-			name: "Test Select: two conditions, and group by and limit 10 with offset 5",
-			inputTable: Table{
-				Name: "mock_table_name",
-			},
+			name:       "Test Select: two conditions, and group by and limit 10 with offset 5",
+			inputTable: "mock_table_name",
 			inputClauses: SelectClauses{
 				Where: []Condition{
 					{
@@ -599,10 +570,8 @@ func TestSelect(t *testing.T) {
 			},
 		},
 		{
-			name: "Test Select: two conditions, and group by and limit 10 with offset 5",
-			inputTable: Table{
-				Name: "mock_table_name",
-			},
+			name:       "Test Select: two conditions, and group by and limit 10 with offset 5",
+			inputTable: "mock_table_name",
 			inputClauses: SelectClauses{
 				Where: []Condition{
 					{
@@ -629,10 +598,8 @@ func TestSelect(t *testing.T) {
 			},
 		},
 		{
-			name: "Test Select: two conditions, and group by, order by and limit 10 with offset 5",
-			inputTable: Table{
-				Name: "mock_table_name",
-			},
+			name:       "Test Select: two conditions, and group by, order by and limit 10 with offset 5",
+			inputTable: "mock_table_name",
 			inputClauses: SelectClauses{
 				Where: []Condition{
 					{
@@ -717,10 +684,8 @@ func TestDelete(t *testing.T) {
 		expected     *Queries
 	}{
 		{
-			name: "Simple WHERE clause with column selection",
-			inputTable: Table{
-				Name: "mock_table_name",
-			},
+			name:       "Simple WHERE clause with column selection",
+			inputTable: "mock_table_name",
 			inputClauses: SelectClauses{
 				Where: []Condition{
 					{
@@ -744,10 +709,8 @@ func TestDelete(t *testing.T) {
 			},
 		},
 		{
-			name: "Simple WHERE clause with TWO column selection",
-			inputTable: Table{
-				Name: "mock_table_name",
-			},
+			name:       "Simple WHERE clause with TWO column selection",
+			inputTable: "mock_table_name",
 			inputClauses: SelectClauses{
 				Where: []Condition{
 					{
@@ -1045,7 +1008,7 @@ func TestApply(t *testing.T) {
 				db = mockSqlDb
 			}
 
-			err := databaseService.Apply()
+			_, err := databaseService.Apply()
 			if tt.hasError {
 				assert.Error(t, err)
 				assert.ErrorContains(t, err, tt.expectedError.Error())

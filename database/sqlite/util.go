@@ -3,8 +3,9 @@ package sqlite
 import (
 	"errors"
 	"fmt"
-	"github.com/AmadlaOrg/LibraryUtils/file"
 	"strings"
+
+	"github.com/AmadlaOrg/LibraryUtils/file"
 )
 
 var (
@@ -23,14 +24,14 @@ func ValidateDbAbsPath(path string) (bool, error) {
 }*/
 
 // ToSQL for Column
-func (col Column) ToSQL() string {
+/*func (col Column) ToSQL() string {
 	var constraints []string
 	for _, constraint := range col.Constraints {
 		constraints = append(constraints, constraint.ToSQL())
 	}
 
 	return fmt.Sprintf("%s %s %s", col.ColumnName, col.DataType, strings.Join(constraints, " "))
-}
+}*/
 
 // ToSQL for Constraint
 func (c Constraint) ToSQL() string {
