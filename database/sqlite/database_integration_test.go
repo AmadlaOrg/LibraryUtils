@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	_ "embed"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -105,8 +106,13 @@ func Test_Integration_Insert(t *testing.T) {
 }
 
 func Test_Integration_Select(t *testing.T) {
-	databaseService := NewDatabaseService("/tmp/test-integration-insert.db")
-	err := databaseService.Initialize()
+	abs, err := filepath.Abs("./testdata/test-integration-insert.db")
+	if err != nil {
+		t.Errorf("Failed to get absolute path: %v", err)
+	}
+
+	databaseService := NewDatabaseService(abs)
+	err = databaseService.Initialize()
 	assert.NoError(t, err)
 
 	databaseService.Select("content", SelectClauses{
@@ -142,7 +148,7 @@ func Test_Integration_Select(t *testing.T) {
 						"num":       int64(1091),
 						"bool":      true,
 						"real":      91.01,
-						"date_time": time.Date(2025, 02, 23, 19, 51, 37, 0, time.UTC),
+						"date_time": time.Date(2025, 02, 24, 2, 48, 27, 0, time.UTC),
 					},
 				},
 			},
