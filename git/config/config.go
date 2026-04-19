@@ -25,7 +25,7 @@ func BuildDefaultConfig(cnf *Config) *Config {
 		//
 		if cnf.CloneOptions == nil {
 			cnf.CloneOptions = &CloneOptions{
-				Depth:             1, // TODO: Verify
+				Depth:             1,
 				ShallowSubmodules: true,
 				Progress:          os.Stdout,
 			}

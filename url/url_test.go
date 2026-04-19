@@ -35,13 +35,13 @@ func TestExtractRepoPath(t *testing.T) {
 		expectedError bool
 	}{
 		{
-			repoURL:       "github.com/AmadlaOrg/EntityApplication/Network/Web/Server",
-			expectedPath:  "https://github.com/AmadlaOrg/EntityApplication",
+			repoURL:       "github.com/AmadlaOrg/Application/Network/Web/Server",
+			expectedPath:  "https://github.com/AmadlaOrg/Application",
 			expectedError: false,
 		},
 		{
-			repoURL:       "github.com/AmadlaOrg/EntityApplication/WebServer",
-			expectedPath:  "https://github.com/AmadlaOrg/EntityApplication",
+			repoURL:       "github.com/AmadlaOrg/Application/WebServer",
+			expectedPath:  "https://github.com/AmadlaOrg/Application",
 			expectedError: false,
 		},
 		{

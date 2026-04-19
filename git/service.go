@@ -4,9 +4,9 @@ import (
 	"github.com/AmadlaOrg/LibraryUtils/git/config"
 )
 
-// NewGitService to set up the git service
-func NewGitService(url, repositoryPath string, cnf *config.Config) IGit {
-	return &SGit{
+// New to set up the git service
+func New(url, repositoryPath string, cnf *config.Config) Git {
+	return &gitImpl{
 		url:            url,
 		repositoryPath: repositoryPath,
 		config:         config.BuildDefaultConfig(cnf),

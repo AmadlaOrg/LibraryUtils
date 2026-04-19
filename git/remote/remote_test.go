@@ -14,13 +14,13 @@ import (
 func TestTags(t *testing.T) {
 	tests := []struct {
 		name                 string
-		internalGitNewRemote func(s storage.Storer, c *config.RemoteConfig) IGoGitRemote
+		internalGitNewRemote func(s storage.Storer, c *config.RemoteConfig) GoGitRemote
 		expectedError        error
 		hasError             bool
 	}{
 		{
 			name: "Success",
-			internalGitNewRemote: func(s storage.Storer, c *config.RemoteConfig) IGoGitRemote {
+			internalGitNewRemote: func(s storage.Storer, c *config.RemoteConfig) GoGitRemote {
 				mockGoGitRemote := NewMockGoGitRemote(t)
 				mockGoGitRemote.EXPECT().List(mock.Anything).Return([]*plumbing.Reference{
 					{},
@@ -34,7 +34,7 @@ func TestTags(t *testing.T) {
 		//
 		{
 			name: "Error: fails at r.List",
-			internalGitNewRemote: func(s storage.Storer, c *config.RemoteConfig) IGoGitRemote {
+			internalGitNewRemote: func(s storage.Storer, c *config.RemoteConfig) GoGitRemote {
 				mockGoGitRemote := NewMockGoGitRemote(t)
 				mockGoGitRemote.EXPECT().List(mock.Anything).Return(nil, errors.New("some error (r.List)"))
 				return mockGoGitRemote
@@ -50,7 +50,7 @@ func TestTags(t *testing.T) {
 			defer func() { gitNewRemote = originalGitNewRemote }()
 			gitNewRemote = tt.internalGitNewRemote
 
-			gitRemoteService := NewGitRemoteService("mock_repo_url", &utilGitConfig.Config{})
+			gitRemoteService := New("mock_repo_url", &utilGitConfig.Config{})
 			tags, err := gitRemoteService.Tags()
 			if tt.hasError {
 				assert.Error(t, err)
@@ -66,7 +66,7 @@ func TestTags(t *testing.T) {
 func TestCommitHeadHash(t *testing.T) {
 	tests := []struct {
 		name                 string
-		internalGitNewRemote func(s storage.Storer, c *config.RemoteConfig) IGoGitRemote
+		internalGitNewRemote func(s storage.Storer, c *config.RemoteConfig) GoGitRemote
 		expectedError        error
 		hasError             bool
 	}{
@@ -75,7 +75,7 @@ func TestCommitHeadHash(t *testing.T) {
 		//
 		{
 			name: "Error: fails at r.List",
-			internalGitNewRemote: func(s storage.Storer, c *config.RemoteConfig) IGoGitRemote {
+			internalGitNewRemote: func(s storage.Storer, c *config.RemoteConfig) GoGitRemote {
 				mockGoGitRemote := NewMockGoGitRemote(t)
 				mockGoGitRemote.EXPECT().List(mock.Anything).Return(nil, errors.New("some error (r.List)"))
 				return mockGoGitRemote
@@ -85,7 +85,7 @@ func TestCommitHeadHash(t *testing.T) {
 		},
 		{
 			name: "Error: refs == nil",
-			internalGitNewRemote: func(s storage.Storer, c *config.RemoteConfig) IGoGitRemote {
+			internalGitNewRemote: func(s storage.Storer, c *config.RemoteConfig) GoGitRemote {
 				mockGoGitRemote := NewMockGoGitRemote(t)
 				mockGoGitRemote.EXPECT().List(mock.Anything).Return(nil, nil)
 				return mockGoGitRemote
@@ -95,7 +95,7 @@ func TestCommitHeadHash(t *testing.T) {
 		},
 		{
 			name: "Error: len(refs) == 0",
-			internalGitNewRemote: func(s storage.Storer, c *config.RemoteConfig) IGoGitRemote {
+			internalGitNewRemote: func(s storage.Storer, c *config.RemoteConfig) GoGitRemote {
 				var plumbingReference []*plumbing.Reference
 				mockGoGitRemote := NewMockGoGitRemote(t)
 				mockGoGitRemote.EXPECT().List(mock.Anything).Return(plumbingReference, nil)
@@ -106,7 +106,7 @@ func TestCommitHeadHash(t *testing.T) {
 		},
 		{
 			name: "Error: headRef == nil",
-			internalGitNewRemote: func(s storage.Storer, c *config.RemoteConfig) IGoGitRemote {
+			internalGitNewRemote: func(s storage.Storer, c *config.RemoteConfig) GoGitRemote {
 				plumbingReferenceOne := &plumbing.Reference{}
 				plumbingReference := []*plumbing.Reference{
 					plumbingReferenceOne,
@@ -120,7 +120,7 @@ func TestCommitHeadHash(t *testing.T) {
 		},
 		{
 			name: "Error: else -> commitHash = headRef.Hash()",
-			internalGitNewRemote: func(s storage.Storer, c *config.RemoteConfig) IGoGitRemote {
+			internalGitNewRemote: func(s storage.Storer, c *config.RemoteConfig) GoGitRemote {
 				plumbingReferenceOne := plumbing.NewReferenceFromStrings("mock_name", "mock_tag")
 				plumbingReference := []*plumbing.Reference{
 					plumbingReferenceOne,
@@ -134,7 +134,7 @@ func TestCommitHeadHash(t *testing.T) {
 		},
 		{
 			name: "Error: commitHash.IsZero()",
-			internalGitNewRemote: func(s storage.Storer, c *config.RemoteConfig) IGoGitRemote {
+			internalGitNewRemote: func(s storage.Storer, c *config.RemoteConfig) GoGitRemote {
 				plumbingReferenceOne := plumbing.NewReferenceFromStrings("HEAD", "mock_tag")
 				plumbingReference := []*plumbing.Reference{
 					plumbingReferenceOne,
@@ -154,7 +154,7 @@ func TestCommitHeadHash(t *testing.T) {
 			defer func() { gitNewRemote = originalGitNewRemote }()
 			gitNewRemote = tt.internalGitNewRemote
 
-			gitRemoteService := NewGitRemoteService("mock_repo_url", &utilGitConfig.Config{})
+			gitRemoteService := New("mock_repo_url", &utilGitConfig.Config{})
 			tags, err := gitRemoteService.CommitHeadHash()
 			if tt.hasError {
 				assert.Error(t, err)

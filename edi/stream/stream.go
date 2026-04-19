@@ -12,11 +12,11 @@ import (
 	"text/template"
 )
 
-type IStream interface {
+type Stream interface {
 	Do() error
 }
 
-type SStream struct {
+type streamImpl struct {
 	tmplFile string
 	input    io.Reader
 	output   io.Writer
@@ -27,7 +27,7 @@ var (
 )
 
 // Do Function to process the template with streaming data
-func (s *SStream) Do() error {
+func (s *streamImpl) Do() error {
 	// Open the template file
 	tmpl, err := templateParseFiles(s.tmplFile)
 	if err != nil {
@@ -40,11 +40,8 @@ func (s *SStream) Do() error {
 		return err
 	}
 
-	if len(dataStream) == 0 {
-		return errors.New("no valid data found in input")
-	}
-
 	// Process each item in the stream
+	count := 0
 	for item := range dataStream {
 		if err := tmpl.Execute(s.output, item); err != nil {
 			return err
@@ -54,13 +51,18 @@ func (s *SStream) Do() error {
 		if _, err := s.output.Write([]byte("")); err != nil {
 			return err
 		}
+		count++
+	}
+
+	if count == 0 {
+		return errors.New("no valid data found in input")
 	}
 
 	return nil
 }
 
 // Detects and streams JSON or YAML content
-func (s *SStream) parse(input io.Reader) (<-chan map[string]any, error) {
+func (s *streamImpl) parse(input io.Reader) (<-chan map[string]any, error) {
 	// Ensure input is a ReadSeeker (required for Seek)
 	var seekableInput io.ReadSeeker
 	if rs, ok := input.(io.ReadSeeker); ok {

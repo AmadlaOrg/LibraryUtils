@@ -1,7 +1,7 @@
 package env
 
-func NewEnvService(typesPaths *[]string) IEnv {
-	return &SEnv{
+func New(typesPaths *[]string) Env {
+	return &envImpl{
 		typesPaths: typesPaths,
 	}
 }

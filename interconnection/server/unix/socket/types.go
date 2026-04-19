@@ -1,3 +1,10 @@
+//go:build !windows
+
 package socket
 
-const socketPath = "/tmp/doorman.sock"
+import (
+	"os"
+	"path/filepath"
+)
+
+var socketPath = filepath.Join(os.TempDir(), "doorman.sock")

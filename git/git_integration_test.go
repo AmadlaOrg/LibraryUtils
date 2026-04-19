@@ -46,7 +46,7 @@ func Test_Integration_Clone(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gitService := NewGitService(tt.url, tt.dest, &config.Config{})
+			gitService := New(tt.url, tt.dest, &config.Config{})
 			err = gitService.Clone()
 			if tt.expectedErr {
 				assert.Error(t, err)
@@ -77,7 +77,7 @@ func Test_Integration_CommitHeadHash(t *testing.T) {
 		}
 	}(tempDir)
 
-	gitService := NewGitService("https://github.com/AmadlaOrg/QAFixturesEntityMultipleTagVersion", tempDir, &config.Config{})
+	gitService := New("https://github.com/AmadlaOrg/QAFixturesEntityMultipleTagVersion", tempDir, &config.Config{})
 
 	err = gitService.Clone()
 	if err != nil {
@@ -109,7 +109,7 @@ func Test_Integration_CommitHeadHash_RepoOpenError(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	gitService := NewGitService("https://github.com/AmadlaOrg/QAFixturesEntityPseudoVersion", tempDir, &config.Config{})
+	gitService := New("https://github.com/AmadlaOrg/QAFixturesEntityPseudoVersion", tempDir, &config.Config{})
 
 	_, err = gitService.CommitHeadHash()
 	assert.Error(t, err)
@@ -134,7 +134,7 @@ func Test_Integration_CommitHeadHash_RepoHeadError(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	gitService := NewGitService("https://github.com/AmadlaOrg/QAFixturesEntityPseudoVersion", tempDir, &config.Config{})
+	gitService := New("https://github.com/AmadlaOrg/QAFixturesEntityPseudoVersion", tempDir, &config.Config{})
 
 	// Write an invalid reference to the HEAD file
 	headFilePath := filepath.Join(tempDir, ".git", "HEAD")
@@ -171,7 +171,7 @@ func Test_Integration_CommitHeadHash_CommitObjectError(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	gitService := NewGitService("https://github.com/AmadlaOrg/QAFixturesEntityPseudoVersion", tempDir, &config.Config{})
+	gitService := New("https://github.com/AmadlaOrg/QAFixturesEntityPseudoVersion", tempDir, &config.Config{})
 
 	_, err = gitService.CommitHeadHash()
 	assert.Error(t, err)
@@ -190,7 +190,7 @@ func Test_Integration_CheckoutTag(t *testing.T) {
 		}
 	}(tempDir)
 
-	gitService := NewGitService("https://github.com/AmadlaOrg/QAFixturesEntityMultipleTagVersion", tempDir, &config.Config{})
+	gitService := New("https://github.com/AmadlaOrg/QAFixturesEntityMultipleTagVersion", tempDir, &config.Config{})
 	err = gitService.Clone()
 	assert.NoError(t, err)
 
@@ -203,7 +203,7 @@ func Test_Integration_CheckoutTag_RepoOpenError(t *testing.T) {
 	// Use a non-existing directory to simulate repository open error
 	tempDir := "/non/existing/path"
 
-	gitService := NewGitService("https://github.com/AmadlaOrg/QAFixturesEntityPseudoVersion", tempDir, &config.Config{})
+	gitService := New("https://github.com/AmadlaOrg/QAFixturesEntityPseudoVersion", tempDir, &config.Config{})
 	err := gitService.CheckoutTag("v1.0.0")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "repository does not exist") // Customize based on actual error message
@@ -228,7 +228,7 @@ func Test_Integration_CheckoutTag_CheckoutError(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	gitService := NewGitService("https://github.com/AmadlaOrg/QAFixturesEntityPseudoVersion", tempDir, &config.Config{})
+	gitService := New("https://github.com/AmadlaOrg/QAFixturesEntityPseudoVersion", tempDir, &config.Config{})
 	err = gitService.CheckoutTag("non-existing-tag")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "reference not found") // Customize based on actual error message

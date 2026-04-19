@@ -1,3 +1,5 @@
+//go:build windows
+
 package named_pipe
 
-const pipeName = `\\.\pipe\doorman-clerk`
+const pipeName = `\\.\pipe\doorman-plugin`

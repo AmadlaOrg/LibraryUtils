@@ -12,8 +12,8 @@ import (
 	"github.com/spf13/pflag"
 )
 
-// IViper 🐍 is the interface for Viper methods.
-type IViper interface {
+// Viper 🐍 is the interface for Viper methods.
+type Viper interface {
 	OnConfigChange(run func(in fsnotify.Event))
 	WatchConfig()
 	SetConfigFile(in string)

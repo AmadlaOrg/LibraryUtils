@@ -1,3 +1,5 @@
+//go:build !windows
+
 package socket
 
 import (
@@ -7,18 +9,23 @@ import (
 	"os"
 )
 
-func Connect() {
+var (
+	osRemove = os.Remove
+	netListen = net.Listen
+	osChmod  = os.Chmod
+)
+
+func Connect() error {
 	// Remove old socket file if exists
-	err := os.Remove(socketPath)
-	if err != nil {
-		return
+	err := osRemove(socketPath)
+	if err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("error removing old socket: %w", err)
 	}
 
 	// Create a Unix domain socket listener
-	listener, err := net.Listen("unix", socketPath)
+	listener, err := netListen("unix", socketPath)
 	if err != nil {
-		fmt.Println("Error creating socket:", err)
-		os.Exit(1)
+		return fmt.Errorf("error creating socket: %w", err)
 	}
 	defer func(listener net.Listener) {
 		err := listener.Close()
@@ -28,12 +35,12 @@ func Connect() {
 	}(listener)
 
 	// Set secure permissions: only owner can read/write
-	err = os.Chmod(socketPath, 0600)
+	err = osChmod(socketPath, 0600)
 	if err != nil {
-		return
+		return fmt.Errorf("error setting socket permissions: %w", err)
 	}
 
-	fmt.Println("Clerk-AWS listening on", socketPath)
+	fmt.Println("doorman-aws listening on", socketPath)
 
 	for {
 		conn, err := listener.Accept()

@@ -1,3 +1,5 @@
+//go:build !windows
+
 package socket
 
 import (
@@ -8,19 +10,18 @@ import (
 	"path/filepath"
 )
 
-type ISocket interface{}
-type SSocket struct{}
+type Socket interface{}
+type socketImpl struct{}
 
 var (
 	netDial        = net.Dial
 	bufioNewReader = bufio.NewReader
 )
 
-func (s *SSocket) Connect() error {
-	conn, err := netDial("unix", filepath.Join("/tmp", SockFileName))
+func (s *socketImpl) Connect() error {
+	conn, err := netDial("unix", filepath.Join(os.TempDir(), SockFileName))
 	if err != nil {
-		fmt.Println("Error connecting to Clerk-AWS:", err)
-		os.Exit(1)
+		return fmt.Errorf("error connecting to doorman-aws: %w", err)
 	}
 	defer func(conn net.Conn) {
 		err := conn.Close()
@@ -41,7 +42,7 @@ func (s *SSocket) Connect() error {
 		return err
 	}
 
-	fmt.Println("Received from Clerk-AWS:", response)
+	fmt.Println("Received from doorman-aws:", response)
 
 	return nil
 }

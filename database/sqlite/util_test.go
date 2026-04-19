@@ -114,14 +114,14 @@ func TestProcessRow(t *testing.T) {
 		inputRow             map[string]any
 		expectedColumnNames  []string
 		expectedPlaceholders []string
-		expectedColumnValues []string
+		expectedColumnValues []any
 	}{
 		{
 			name:                 "empty row",
 			inputRow:             map[string]any{},
 			expectedColumnNames:  []string{},
 			expectedPlaceholders: []string{},
-			expectedColumnValues: []string{},
+			expectedColumnValues: []any{},
 		},
 		{
 			name: "single column",
@@ -130,7 +130,7 @@ func TestProcessRow(t *testing.T) {
 			},
 			expectedColumnNames:  []string{"Id"},
 			expectedPlaceholders: []string{"?"},
-			expectedColumnValues: []string{"123"},
+			expectedColumnValues: []any{"123"},
 		},
 		{
 			name: "multiple columns",
@@ -142,7 +142,7 @@ func TestProcessRow(t *testing.T) {
 			},
 			expectedColumnNames:  []string{"Id", "Name", "Age", "Email"},
 			expectedPlaceholders: []string{"?", "?", "?", "?"},
-			expectedColumnValues: []string{"123", "John", "30", "john@example.com"},
+			expectedColumnValues: []any{"123", "John", 30, "john@example.com"},
 		},
 	}
 

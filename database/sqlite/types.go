@@ -161,10 +161,10 @@ type Relationship struct {
 	ReferencesColumnName string
 }
 
-type Rows []Row
+type DataRows []DataRow
 
 // Row is where the data is being passed compared to the structure in the Column struct
-type Row = map[string]any
+type DataRow = map[string]any
 
 // Constraint represents a SQLite constraint.
 type Constraint struct {

@@ -1,10 +1,8 @@
+//go:build windows
+
 // Package named_pipe
 //
-// On environments that are not windows this part of the code will show errors and issues.
-//
 // Doc: https://learn.microsoft.com/en-us/windows/win32/ipc/named-pipes
-//
-// TODO: Find a way to run all the test but bypass the Windows section
 package named_pipe
 
 import (
@@ -13,15 +11,15 @@ import (
 	"os"
 )
 
-type INamedPipe interface{}
+type NamedPipe interface{}
 
-type SNamedPipe struct{}
+type namedPipeImpl struct{}
 
 // Connect
-func (s *SNamedPipe) Connect() error {
+func (s *namedPipeImpl) Connect() error {
 	conn, err := winio.DialPipe(pipeName, nil)
 	if err != nil {
-		fmt.Println("Error connecting to Clerk-AWS:", err)
+		fmt.Println("Error connecting to doorman-aws:", err)
 		os.Exit(1)
 	}
 	defer conn.Close()
@@ -33,7 +31,7 @@ func (s *SNamedPipe) Connect() error {
 	// Read response
 	buf := make([]byte, 1024)
 	n, _ := conn.Read(buf)
-	fmt.Println("Received from Clerk-AWS:", string(buf[:n]))
+	fmt.Println("Received from doorman-aws:", string(buf[:n]))
 
 	return nil
 }

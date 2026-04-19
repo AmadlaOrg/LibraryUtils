@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/AmadlaOrg/LibraryUtils/pointer"
-	//"github.com/AmadlaOrg/hery/util/pointer"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"testing"
@@ -19,15 +18,9 @@ func TestInitialize_db_set(t *testing.T) {
 	db = nil
 	initialized = false
 
-	/*mockSyncLocker := NewMockSyncLocker(t)
-	mockSyncLocker.EXPECT().Lock()
-	mockSyncLocker.EXPECT().Unlock()
+	db = NewMockDB(t)
 
-	dbMutex = mockSyncLocker*/
-
-	db = NewMockIDatabaseSqlDB(t)
-
-	databaseService := NewDatabaseService(testDbAbsPath)
+	databaseService := New(testDbAbsPath)
 	err := databaseService.Initialize()
 
 	assert.NoError(t, err)
@@ -37,15 +30,15 @@ func TestInitialize(t *testing.T) {
 	tests := []struct {
 		name              string
 		inputDbPath       string
-		internalSqlOpenFn func(driverName, dataSourceName string) (IDatabaseSqlDB, error)
+		internalSqlOpenFn func(driverName, dataSourceName string) (DB, error)
 		expectedErr       error
 		hasError          bool
 	}{
 		{
 			name:        "Initialize database",
 			inputDbPath: "/tmp/hery.test.cache",
-			internalSqlOpenFn: func(driverName, dataSourceName string) (IDatabaseSqlDB, error) {
-				mockSqlDb := NewMockIDatabaseSqlDB(t)
+			internalSqlOpenFn: func(driverName, dataSourceName string) (DB, error) {
+				mockSqlDb := NewMockDB(t)
 				mockSqlDb.EXPECT().Exec(mock.Anything).Return(nil, nil)
 				mockSqlDb.EXPECT().SetMaxOpenConns(mock.Anything)
 				mockSqlDb.EXPECT().SetMaxIdleConns(mock.Anything)
@@ -60,7 +53,7 @@ func TestInitialize(t *testing.T) {
 		{
 			name:        "Error: db Open fail",
 			inputDbPath: "/tmp/hery.test.cache",
-			internalSqlOpenFn: func(driverName, dataSourceName string) (IDatabaseSqlDB, error) {
+			internalSqlOpenFn: func(driverName, dataSourceName string) (DB, error) {
 				return nil, assert.AnError
 			},
 			expectedErr: errors.New("error opening database: "),
@@ -69,8 +62,8 @@ func TestInitialize(t *testing.T) {
 		{
 			name:        "Error: db Exec function throws error",
 			inputDbPath: "/tmp/hery.test.cache",
-			internalSqlOpenFn: func(driverName, dataSourceName string) (IDatabaseSqlDB, error) {
-				mockSqlDb := NewMockIDatabaseSqlDB(t)
+			internalSqlOpenFn: func(driverName, dataSourceName string) (DB, error) {
+				mockSqlDb := NewMockDB(t)
 				mockSqlDb.EXPECT().Exec(mock.Anything).Return(nil, assert.AnError) // assert.AnError
 				mockSqlDb.EXPECT().Close().Return(nil)
 				return mockSqlDb, nil
@@ -81,8 +74,8 @@ func TestInitialize(t *testing.T) {
 		{
 			name:        "Error: db Exec function throws error also db Close",
 			inputDbPath: "/tmp/hery.test.cache",
-			internalSqlOpenFn: func(driverName, dataSourceName string) (IDatabaseSqlDB, error) {
-				mockSqlDb := NewMockIDatabaseSqlDB(t)
+			internalSqlOpenFn: func(driverName, dataSourceName string) (DB, error) {
+				mockSqlDb := NewMockDB(t)
 				mockSqlDb.EXPECT().Exec(mock.Anything).Return(nil, assert.AnError) // assert.AnError
 				mockSqlDb.EXPECT().Close().Return(assert.AnError)
 				return mockSqlDb, nil
@@ -108,7 +101,7 @@ func TestInitialize(t *testing.T) {
 			defer func() { sqlOpen = originalSqlOpen }()
 			sqlOpen = tt.internalSqlOpenFn
 
-			databaseService := NewDatabaseService(testDbAbsPath)
+			databaseService := New(testDbAbsPath)
 			err := databaseService.Initialize()
 
 			if tt.hasError {
@@ -125,14 +118,14 @@ func TestClose(t *testing.T) {
 	tests := []struct {
 		name                string
 		externalInitialized bool
-		externalDb          IDatabaseSqlDB
+		externalDb          DB
 		hasError            bool
 	}{
 		{
 			name:                "Close database",
 			externalInitialized: true,
-			externalDb: func() IDatabaseSqlDB {
-				mockSqlDb := NewMockIDatabaseSqlDB(t)
+			externalDb: func() DB {
+				mockSqlDb := NewMockDB(t)
 				mockSqlDb.EXPECT().Close().Return(nil)
 				return mockSqlDb
 			}(),
@@ -141,7 +134,7 @@ func TestClose(t *testing.T) {
 		{
 			name:                "Database is closed",
 			externalInitialized: true,
-			externalDb: func() IDatabaseSqlDB {
+			externalDb: func() DB {
 				return nil
 			}(),
 			hasError: false,
@@ -152,8 +145,8 @@ func TestClose(t *testing.T) {
 		{
 			name:                "Error: Close database",
 			externalInitialized: true,
-			externalDb: func() IDatabaseSqlDB {
-				mockSqlDb := NewMockIDatabaseSqlDB(t)
+			externalDb: func() DB {
+				mockSqlDb := NewMockDB(t)
 				mockSqlDb.EXPECT().Close().Return(assert.AnError)
 				return mockSqlDb
 			}(),
@@ -172,7 +165,7 @@ func TestClose(t *testing.T) {
 
 			dbMutex = mockSyncLocker*/
 
-			databaseService := NewDatabaseService(testDbAbsPath)
+			databaseService := New(testDbAbsPath)
 			err := databaseService.Close()
 
 			if tt.hasError {
@@ -217,54 +210,18 @@ func TestIsInitialized(t *testing.T) {
 
 			dbMutex = mockSyncLocker*/
 
-			databaseService := NewDatabaseService(testDbAbsPath)
+			databaseService := New(testDbAbsPath)
 			got := databaseService.IsInitialized()
 			assert.Equal(t, tt.expectedInitialized, got)
 		})
 	}
 }
 
-// FIXME: This was moved for creating tables
-/*func TestCreateTable(t *testing.T) {
-	orginalSqlTables := sqlTables
-	sqlTables = "SQL string to create table"
-	databaseService := SDatabase{
-		queries: &Queries{
-			CreateTable: []Query{},
-			DropTable:   []Query{},
-			Insert:      []Query{},
-			Update:      []Query{},
-			Delete:      []Query{},
-			Select:      []Query{},
-		},
-	}
-
-	// TODO:
-	databaseService.CreateTable(pointer.ToPtr(""))
-
-	expected := &Queries{
-		CreateTable: []Query{
-			{
-				Query: "SQL string to create table",
-			},
-		},
-		DropTable: []Query{},
-		Insert:    []Query{},
-		Update:    []Query{},
-		Delete:    []Query{},
-		Select:    []Query{},
-	}
-	assert.Equal(t, databaseService.queries, expected)
-
-	// Reset
-	sqlTables = orginalSqlTables
-}*/
-
 func TestInsert(t *testing.T) {
 	tests := []struct {
 		name       string
 		inputTable Table
-		inputRows  Rows
+		inputRows  DataRows
 	}{
 		{
 			name:       "Test Insert",
@@ -281,166 +238,14 @@ func TestInsert(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			databaseService := NewDatabaseService(testDbAbsPath)
+			databaseService := New(testDbAbsPath)
 			databaseService.Insert(tt.inputTable, tt.inputRows)
 		})
 	}
 }
 
-/*func TestInsert(t *testing.T) {
-	// Arrange: Initialize the in-memory database
-	dbPath := ":memory:"
-	db, err := sql.Open("sqlite3", dbPath)
-	if err != nil {
-		t.Fatalf("Failed to open database: %v", err)
-	}
-	defer db.Close()
-
-	// Initialize database service
-	databaseService := &SDatabase{
-		queries: &[]string{},
-	}
-
-	// Create table
-	table := Table{
-		Name: "Net",
-		Columns: []Column{
-			{
-				ColumnName: "Id",
-				DataType:   "TEXT",
-				Constraints: []Constraint{
-					{
-						Type: ConstraintPrimaryKey,
-					},
-				},
-			},
-			{
-				ColumnName: "server_name",
-				DataType:   "TEXT",
-			},
-			{
-				ColumnName: "listen",
-				DataType:   "TEXT",
-			},
-		},
-		Rows: []map[string]any{
-			{
-				"Id":          "c6beaec1-90c4-4d2a-aaef-211ab00b86bd",
-				"server_name": "localhost",
-				"listen":      "[80, 443]",
-			},
-		},
-	}
-
-	// Act: Create table and insert rows
-	databaseService.CreateTable(table)
-	for _, query := range *databaseService.queries {
-		_, err := db.Exec(query)
-		if err != nil {
-			t.Fatalf("Failed to execute query: %v\nQuery: %s", err, query)
-		}
-	}
-
-	databaseService.Insert(table)
-	for _, query := range *databaseService.queries {
-		_, err := db.Exec(query)
-		if err != nil {
-			t.Fatalf("Failed to execute query: %v\nQuery: %s", err, query)
-		}
-	}
-
-	// Assert: Verify the data is inserted correctly
-	var id, serverName, listen string
-	err = db.QueryRow("SELECT Id, server_name, listen FROM Net WHERE Id = ?", "c6beaec1-90c4-4d2a-aaef-211ab00b86bd").Scan(&id, &serverName, &listen)
-	if err != nil {
-		t.Fatalf("Failed to query inserted row: %v", err)
-	}
-
-	if id != "c6beaec1-90c4-4d2a-aaef-211ab00b86bd" || serverName != "localhost" || listen != "[80, 443]" {
-		t.Errorf("Inserted row does not match expected values: got (%s, %s, %s)", id, serverName, listen)
-	}
-}*/
-
+// TestUpdate is a placeholder — test cases were removed due to non-deterministic map iteration order.
 func TestUpdate(t *testing.T) {
-	tests := []struct {
-		name       string
-		inputTable Table
-		expected   *Queries
-	}{
-		// TODO: It moves things around so sometimes the test pass other times no
-		/*{
-			name: "Test Insert",
-			inputTable: Table{
-				Name: "Net",
-				Columns: []Column{
-					{
-						ColumnName: "Id",
-						DataType:   "TEXT",
-						Constraints: []Constraint{
-							{
-								Type: ConstraintPrimaryKey,
-							},
-						},
-					},
-					{
-						ColumnName: "server_name",
-						DataType:   "TEXT",
-					},
-					{
-						ColumnName: "listen",
-						DataType:   "TEXT",
-					},
-				},
-				Rows: []map[string]any{
-					{
-						"Id":          "c6beaec1-90c4-4d2a-aaef-211ab00b86bd",
-						"server_name": "localhost",
-						"listen":      "[80, 443]",
-					},
-				},
-			},
-			expected: &Queries{
-				CreateTable: []Query{},
-				DropTable:   []Query{},
-				Insert:      []Query{},
-				Update: []Query{
-					{
-						Query: "UPDATE Net SET Id = ?, server_name = ?, listen = ? WHERE Id = 'c6beaec1-90c4-4d2a-aaef-211ab00b86bd' AND server_name = 'localhost' AND listen = '[80, 443]'",
-						Values: []string{
-							"c6beaec1-90c4-4d2a-aaef-211ab00b86bd",
-							"localhost",
-							"[80, 443]",
-						},
-						Result: "",
-					},
-				},
-				Delete: []Query{},
-				Select: []Query{},
-			},
-		},*/
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			databaseService := SDatabase{
-				queries: &Queries{
-					CreateTable: []Query{},
-					DropTable:   []Query{},
-					Insert:      []Query{},
-					Update:      []Query{},
-					Delete:      []Query{},
-					Select:      []Query{},
-				},
-			}
-			// TODO:
-			databaseService.Update(tt.inputTable, Rows{}, []Condition{
-				{Column: "Id", Operator: "=", Value: "c6beaec1-90c4-4d2a-aaef-211ab00b86bd"},
-				{Column: "server_name", Operator: "LIKE", Value: "localhost"},
-				{Column: "listen", Operator: "IN", Value: "[80, 443]"},
-			})
-			assert.Equal(t, tt.expected, databaseService.queries)
-		})
-	}
 }
 
 func TestSelect(t *testing.T) {
@@ -660,7 +465,7 @@ func TestSelect(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			databaseService := SDatabase{
+			databaseService := databaseImpl{
 				queries: &Queries{
 					CreateTable: []Query{},
 					DropTable:   []Query{},
@@ -742,7 +547,7 @@ func TestDelete(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			databaseService := SDatabase{
+			databaseService := databaseImpl{
 				queries: &Queries{
 					CreateTable: []Query{},
 					DropTable:   []Query{},
@@ -806,7 +611,7 @@ func TestDeleteDb(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			databaseService := SDatabase{
+			databaseService := databaseImpl{
 				dbAbsPath: tt.serviceStructDbAbsPath,
 				queries: &Queries{
 					CreateTable: []Query{},
@@ -879,7 +684,7 @@ func TestApply(t *testing.T) {
 		{
 			name: "Error: db Begin fails",
 			internalQueries: &Queries{
-				CreateTable: []Query{},
+				CreateTable: []Query{{Query: "CREATE TABLE test (id TEXT)"}},
 				DropTable:   []Query{},
 				Insert:      []Query{},
 				Update:      []Query{},
@@ -890,7 +695,7 @@ func TestApply(t *testing.T) {
 			internalDbBeginExpect: true,
 			internalDbBeginError:  errors.New("test error (ValidateDbBegin)"),
 			expectedQueries: &Queries{
-				CreateTable: []Query{},
+				CreateTable: []Query{{Query: "CREATE TABLE test (id TEXT)"}},
 				DropTable:   []Query{},
 				Insert:      []Query{},
 				Update:      []Query{},
@@ -911,8 +716,7 @@ func TestApply(t *testing.T) {
 				Select:      []Query{},
 			},
 			internalInitialized:   true,
-			internalDbBeginExpect: true,
-			internalDbBeginError:  nil,
+			internalDbBeginExpect: false,
 			expectedQueries: &Queries{
 				CreateTable: []Query{},
 				DropTable:   []Query{},
@@ -924,65 +728,24 @@ func TestApply(t *testing.T) {
 			expectedError: fmt.Errorf("error no queries"),
 			hasError:      true,
 		},
-		// TODO: Issue with interface and struct
-		/*{
-			name: "Error: tx Exec fails",
-			internalQueries: &Queries{
-				CreateTable: []Query{},
-				DropTable:   []Query{},
-				Insert:      []Query{},
-				Update:      []Query{},
-				Delete:      []Query{},
-				Select: []Query{
-					{
-						Query: "select * from table1",
-					},
-				},
-			},
-			internalInitialized:   true,
-			internalDbBeginExpect: true,
-			internalDbBeginError:  nil,
-			internalTxExecExpect:  true,
-			internalTxExecError:   errors.New("test error (tx Exec)"),
-			expectedQueries: &Queries{
-				CreateTable: []Query{},
-				DropTable:   []Query{},
-				Insert:      []Query{},
-				Update:      []Query{},
-				Delete:      []Query{},
-				Select: []Query{
-					{
-						Query: "select * from table1",
-					},
-				},
-			},
-			expectedError: fmt.Errorf("test error (tx Exec)"),
-			hasError:      true,
-		},*/
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			databaseService := &SDatabase{
+			databaseService := &databaseImpl{
 				queries: tt.internalQueries,
 			}
-
-			/*mockSyncLocker := NewMockSyncLocker(t)
-			mockSyncLocker.EXPECT().Lock()
-			mockSyncLocker.EXPECT().Unlock()
-
-			dbMutex = mockSyncLocker*/
 
 			// initialized
 			originalInitialized := initialized
 			defer func() { initialized = originalInitialized }()
 			initialized = tt.internalInitialized
 
-			mockSqlDb := NewMockIDatabaseSqlDB(t)
+			mockSqlDb := NewMockDB(t)
 
 			if tt.internalDbBeginExpect {
 
 				if tt.internalTxExecExpect {
-					mockSqlTx := NewMockIDatabaseSqlTx(t)
+					mockSqlTx := NewMockTx(t)
 					mockSqlTx.EXPECT().Exec(mock.Anything).Return(nil, tt.internalTxExecError)
 
 					if tt.internalTxRollbackExpect {
@@ -993,19 +756,11 @@ func TestApply(t *testing.T) {
 						mockSqlTx.EXPECT().Commit().Return(tt.internalTxCommitError)
 					}
 
-					// FIXME:
-					//mockSqlDb.EXPECT().Begin().Return(mockSqlTx, tt.internalDbBeginError)
-				} else {
+					} else {
 					mockSqlDb.EXPECT().Begin().Return(nil, tt.internalDbBeginError)
 				}
 
-				/*originalTxExec := txExec
-				defer func() { txExec = originalTxExec }()
-				txExec = func(tx *sql.Tx, query string, args ...any) (sql.Result, error) {
-					return mockSqlTx.Exec(query, args...)
-				}*/
-
-				db = mockSqlDb
+					db = mockSqlDb
 			}
 
 			_, err := databaseService.Apply()

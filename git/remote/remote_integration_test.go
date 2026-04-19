@@ -9,7 +9,7 @@ import (
 )
 
 func Test_integration_Tags(t *testing.T) {
-	gitRemoteService := NewGitRemoteService(
+	gitRemoteService := New(
 		"https://github.com/AmadlaOrg/QAFixturesEntityMultipleTagVersion",
 		&utilGitConfig.Config{})
 	tags, err := gitRemoteService.Tags()
@@ -40,7 +40,7 @@ func Test_integration_Tags(t *testing.T) {
 }
 
 func Test_integration_CommitHeadHash(t *testing.T) {
-	gitRemoteService := NewGitRemoteService(
+	gitRemoteService := New(
 		"https://github.com/AmadlaOrg/QAFixturesEntityMultipleTagVersion",
 		&utilGitConfig.Config{})
 	hash, err := gitRemoteService.CommitHeadHash()

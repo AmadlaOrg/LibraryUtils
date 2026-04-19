@@ -8,15 +8,15 @@ import (
 	"github.com/spf13/cobra/doc"
 )
 
-// IDocument 🧩 Is the interface for the NewDocumentService.
-type IDocument interface {
+// Document 🧩 Is the interface for the NewDocumentService.
+type Document interface {
 	All(outputPath string) error
 	Man(outputPath string) error
 	Markdown(outputPath string) error
 }
 
-// SDocument 🏛️ Is the main structure for the NewDocumentService.
-type SDocument struct {
+// documentImpl 🏛️ Is the main structure for the NewDocumentService.
+type documentImpl struct {
 	// 📇 appName - Is the of the application (normally all lowercase).
 	appName string
 
@@ -40,7 +40,7 @@ var (
 //
 // Params:
 // - 📁 outputPath: Is the absolute path to the directory where the document will be output.
-func (service *SDocument) All(outputPath string) error {
+func (service *documentImpl) All(outputPath string) error {
 	manErr := service.Man(outputPath)
 	mkErr := service.Markdown(outputPath)
 
@@ -59,7 +59,7 @@ func (service *SDocument) All(outputPath string) error {
 //
 // Params:
 // - 📁 outputPath: Is the absolute path to the directory where the document will be output.
-func (service *SDocument) Man(outputPath string) error {
+func (service *documentImpl) Man(outputPath string) error {
 	header := &doc.GenManHeader{
 		Title:   service.appTitle,
 		Section: "1",
@@ -79,7 +79,7 @@ func (service *SDocument) Man(outputPath string) error {
 //
 // Params:
 // - 📁 outputPath: Is the absolute path to the directory where the document will be output.
-func (service *SDocument) Markdown(outputPath string) error {
+func (service *documentImpl) Markdown(outputPath string) error {
 	err := docGenMarkdownTree(service.rootCmd, outputPath)
 	if err != nil {
 		return err

@@ -7,30 +7,30 @@ import (
 	"github.com/go-git/go-git/v5/plumbing"
 )
 
-// IGit to help with mocking
-type IGit interface {
+// Git to help with mocking
+type Git interface {
 	Clone() error
 	CommitHeadHash() (string, error)
 	CheckoutTag(tagName string) error
 }
 
-type SGit struct {
+type gitImpl struct {
 	url            string
 	repositoryPath string
 	config         *config.Config
 }
 
 var (
-	gitPlainOpen = func(path string) (IGoGitRepository, error) {
+	gitPlainOpen = func(path string) (GoGitRepository, error) {
 		return git.PlainOpen(path)
 	}
-	gitPlainClone = func(path string, isBare bool, o *git.CloneOptions) (IGoGitRepository, error) {
+	gitPlainClone = func(path string, isBare bool, o *git.CloneOptions) (GoGitRepository, error) {
 		return git.PlainClone(path, isBare, o)
 	}
 )
 
 // Clone clones the repository from the given URL to the specified destination
-func (s *SGit) Clone() error {
+func (s *gitImpl) Clone() error {
 	_, err := gitPlainClone(s.repositoryPath, false, &git.CloneOptions{
 		URL:               s.url,
 		RemoteName:        s.config.RemoteName, // TODO: How to handle default, maybe add origin as the default
@@ -47,7 +47,7 @@ func (s *SGit) Clone() error {
 }
 
 // CommitHeadHash retrieves the hash of the most recent commit
-func (s *SGit) CommitHeadHash() (string, error) {
+func (s *gitImpl) CommitHeadHash() (string, error) {
 	repo, err := gitPlainOpen(s.repositoryPath)
 	if err != nil {
 		return "", err
@@ -69,7 +69,7 @@ func (s *SGit) CommitHeadHash() (string, error) {
 }
 
 // CheckoutTag checks out the specified branch or tag in the repository.
-func (s *SGit) CheckoutTag(tagName string) error {
+func (s *gitImpl) CheckoutTag(tagName string) error {
 	repo, err := gitPlainOpen(s.repositoryPath)
 	if err != nil {
 		return err

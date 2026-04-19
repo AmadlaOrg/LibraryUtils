@@ -10,12 +10,12 @@ var (
 	viperNew = viper.New
 )
 
-// NewConfigurationService setups the configuration settings with Viper
+// New setups the configuration settings with Viper
 //
 // Params:
 // - 📇 appName - Is the of the application (normally all lowercase)
 // - 📁 configDirPath - The configuration absolute path to its directory.
-func NewConfigurationService(appName, configDirPath string) IConfiguration {
+func New(appName, configDirPath string) Configuration {
 	newViper := viperNew()
 	newViper.SetEnvPrefix(strings.ToUpper(appName))
 	newViper.AutomaticEnv()
@@ -26,7 +26,7 @@ func NewConfigurationService(appName, configDirPath string) IConfiguration {
 	newViper.AddConfigPath(".")
 	newViper.AddConfigPath(configDirPath)
 
-	return &SConfiguration{
+	return &configImpl{
 		viperInstance: newViper,
 	}
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/storer"
 )
 
-type IGoGitRepository interface {
+type GoGitRepository interface {
 	Grep(opts *git.GrepOptions) ([]git.GrepResult, error)
 	DeleteObject(hash plumbing.Hash) error
 	Prune(opt git.PruneOptions) error
@@ -54,7 +54,7 @@ type IGoGitRepository interface {
 	Merge(ref plumbing.Reference, opts git.MergeOptions) error
 }
 
-type IGoGitWorktree interface {
+type GoGitWorktree interface {
 	Pull(o *git.PullOptions) error
 	PullContext(ctx context.Context, o *git.PullOptions) error
 	Checkout(opts *git.CheckoutOptions) error

@@ -7,8 +7,8 @@ import (
 	"time"
 )
 
-// IFile is the interface for the methods found in os/file
-type IFile interface {
+// File is the interface for the methods found in os/file
+type File interface {
 	Name() string
 	Read(b []byte) (n int, err error)
 	ReadAt(b []byte, off int64) (n int, err error)

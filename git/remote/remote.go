@@ -11,25 +11,25 @@ import (
 	"github.com/go-git/go-git/v5/storage/memory"
 )
 
-// IRemote to help with mocking
-type IRemote interface {
+// Remote to help with mocking
+type Remote interface {
 	Tags() ([]string, error)
 	CommitHeadHash() (string, error)
 }
 
-type SRemote struct {
+type remoteImpl struct {
 	url    string
 	config *utilGitConfig.Config
 }
 
 var (
-	gitNewRemote = func(s storage.Storer, c *config.RemoteConfig) IGoGitRemote {
+	gitNewRemote = func(s storage.Storer, c *config.RemoteConfig) GoGitRemote {
 		return git.NewRemote(s, c)
 	}
 )
 
 // Tags returns a list of tags for the repository at the specified URL.
-func (s *SRemote) Tags() ([]string, error) {
+func (s *remoteImpl) Tags() ([]string, error) {
 	r := gitNewRemote(memory.NewStorage(), &config.RemoteConfig{
 		Name: "origin",
 		URLs: []string{s.url},
@@ -58,7 +58,7 @@ func (s *SRemote) Tags() ([]string, error) {
 }
 
 // CommitHeadHash retrieves the hash of the most recent commit
-func (s *SRemote) CommitHeadHash() (string, error) {
+func (s *remoteImpl) CommitHeadHash() (string, error) {
 	r := gitNewRemote(memory.NewStorage(), &config.RemoteConfig{
 		Name: "origin",
 		URLs: []string{s.url},

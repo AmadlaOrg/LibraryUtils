@@ -5,10 +5,10 @@ import (
 	"testing"
 )
 
-func TestNewDatabaseService(t *testing.T) {
+func TestNew(t *testing.T) {
 	t.Run("should return a new instance of Database", func(t *testing.T) {
-		service := NewDatabaseService("/home/user/")
+		service := New("/home/user/")
 		assert.NotNil(t, service)
-		assert.IsType(t, &SDatabase{}, service)
+		assert.IsType(t, &databaseImpl{}, service)
 	})
 }

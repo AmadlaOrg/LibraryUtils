@@ -9,12 +9,12 @@ import (
 	"io"
 )
 
-type IAesGcm interface {
+type AesGcm interface {
 	Encrypt(plainText string) (string, error)
 	Decrypt(cipherText string) (string, error)
 }
 
-type SAesGcm struct {
+type aesGcmImpl struct {
 	key string
 }
 
@@ -26,7 +26,7 @@ var (
 )
 
 // Encrypt text using AES-GCM
-func (s *SAesGcm) Encrypt(plainText string) (string, error) {
+func (s *aesGcmImpl) Encrypt(plainText string) (string, error) {
 	block, err := aesNewCipher([]byte(s.key))
 	if err != nil {
 		return "", err
@@ -48,7 +48,7 @@ func (s *SAesGcm) Encrypt(plainText string) (string, error) {
 }
 
 // Decrypt AES-GCM encrypted text
-func (s *SAesGcm) Decrypt(cipherText string) (string, error) {
+func (s *aesGcmImpl) Decrypt(cipherText string) (string, error) {
 	data, err := base64StdEncoding.DecodeString(cipherText)
 	if err != nil {
 		return "", err

@@ -13,7 +13,7 @@ var (
 	osStat       = os.Stat
 	osIsNotExist = os.IsNotExist
 	bytesEqual   = bytes.Equal
-	osOpen       = func(name string) (IFile, error) {
+	osOpen       = func(name string) (File, error) {
 		return os.Open(name)
 	}
 )
@@ -81,7 +81,7 @@ func IsValidMagic(path string, magic []byte) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	defer func(file IFile) {
+	defer func(file File) {
 		if closeErr := file.Close(); closeErr != nil {
 			log.Println(fmt.Errorf("failed to close file %s: %v", path, closeErr))
 		}

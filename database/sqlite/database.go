@@ -12,34 +12,34 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-// IDatabase defines the database interface
-type IDatabase interface {
+// Database defines the database interface
+type Database interface {
 	Initialize() error
 	Close() error
 	IsInitialized() bool
 	CreateTable(sqlTables *string)
-	Insert(tableName Table, rows Rows)
-	Update(tableName Table, rows Rows, where []Condition)
+	Insert(tableName Table, rows DataRows)
+	Update(tableName Table, rows DataRows, where []Condition)
 	Select(tableName Table, clauses SelectClauses, joinClauses []JoinClauses)
 	Delete(tableName Table, clauses SelectClauses)
 	DeleteDb() error
 	Apply() (*Queries, error)
 }
 
-// SDatabase implements IDatabase
-type SDatabase struct {
+// databaseImpl implements Database
+type databaseImpl struct {
 	dbAbsPath   string
 	queries     *Queries
-	sqlDB       IDatabaseSqlDB
+	sqlDB       DB
 	initialized bool
 }
 
 // For mocking 🥸.
 var (
-	db          IDatabaseSqlDB
+	db          DB
 	dbMutex     sync.Mutex // sync.Locker
 	initialized bool
-	sqlOpen     = func(driverName, dataSourceName string) (IDatabaseSqlDB, error) {
+	sqlOpen     = func(driverName, dataSourceName string) (DB, error) {
 		return sql.Open(driverName, dataSourceName)
 	}
 	osRemove = os.Remove
@@ -49,7 +49,7 @@ var (
 //
 // Returns:
 // - 🚨 error:
-func (s *SDatabase) Initialize() error {
+func (s *databaseImpl) Initialize() error {
 	dbMutex.Lock()
 	defer dbMutex.Unlock()
 
@@ -91,7 +91,7 @@ func (s *SDatabase) Initialize() error {
 //
 // Returns:
 // - 🚨 error:
-func (s *SDatabase) Close() error {
+func (s *databaseImpl) Close() error {
 	dbMutex.Lock()
 	defer dbMutex.Unlock()
 
@@ -115,16 +115,16 @@ func (s *SDatabase) Close() error {
 }
 
 // IsInitialized returns true if the database has been initialized
-func (s *SDatabase) IsInitialized() bool {
+func (s *databaseImpl) IsInitialized() bool {
 	dbMutex.Lock()
 	defer dbMutex.Unlock()
 	return initialized
 }
 
-func (s *SDatabase) query(
+func (s *databaseImpl) query(
 	addTo *[]Query,
-	rows Rows,
-	buildQueryFunc func(rows Rows, columnNames, valuesPlaceholder []string) string,
+	rows DataRows,
+	buildQueryFunc func(rows DataRows, columnNames, valuesPlaceholder []string) string,
 ) {
 	for _, row := range rows {
 		columnNames, valuesPlaceholder, columnValues := processRow(row)
@@ -138,7 +138,7 @@ func (s *SDatabase) query(
 }
 
 // addQuery adds the queries to the queries struct component
-func (s *SDatabase) addQuery(slice *[]Query, query string, values []any) {
+func (s *databaseImpl) addQuery(slice *[]Query, query string, values []any) {
 	*slice = append(*slice, Query{
 		Query:  query,
 		Values: values,
@@ -146,16 +146,16 @@ func (s *SDatabase) addQuery(slice *[]Query, query string, values []any) {
 }
 
 // CreateTable creates a new table
-func (s *SDatabase) CreateTable(sqlTables *string) {
+func (s *databaseImpl) CreateTable(sqlTables *string) {
 	s.addQuery(&s.queries.CreateTable, *sqlTables, nil)
 }
 
 // Insert inserts records into the table
-func (s *SDatabase) Insert(tableName Table, rows Rows) {
+func (s *databaseImpl) Insert(tableName Table, rows DataRows) {
 	s.query(
 		&s.queries.Insert,
 		rows,
-		func(rows Rows, columnNames, valuesPlaceholder []string) string {
+		func(rows DataRows, columnNames, valuesPlaceholder []string) string {
 			var b strings.Builder
 			b.WriteString("INSERT INTO ")
 			b.WriteString(string(tableName))
@@ -170,11 +170,11 @@ func (s *SDatabase) Insert(tableName Table, rows Rows) {
 }
 
 // Update updates a record in the table
-func (s *SDatabase) Update(tableName Table, rows Rows, where []Condition) {
+func (s *databaseImpl) Update(tableName Table, rows DataRows, where []Condition) {
 	s.query(
 		&s.queries.Update,
 		rows,
-		func(rows Rows, columnNames, valuesPlaceholder []string) string {
+		func(rows DataRows, columnNames, valuesPlaceholder []string) string {
 			var b strings.Builder
 			b.WriteString("UPDATE ")
 			b.WriteString(string(tableName))
@@ -194,7 +194,7 @@ func (s *SDatabase) Update(tableName Table, rows Rows, where []Condition) {
 }
 
 // Select retrieves a record from the table
-func (s *SDatabase) Select(tableName Table, clauses SelectClauses, joinClauses []JoinClauses) {
+func (s *databaseImpl) Select(tableName Table, clauses SelectClauses, joinClauses []JoinClauses) {
 	// Build the SELECT query
 	var b strings.Builder
 	b.WriteString("SELECT * FROM ")
@@ -228,7 +228,7 @@ func (s *SDatabase) Select(tableName Table, clauses SelectClauses, joinClauses [
 }
 
 // Delete deletes records from the table
-func (s *SDatabase) Delete(tableName Table, clauses SelectClauses) {
+func (s *databaseImpl) Delete(tableName Table, clauses SelectClauses) {
 	var b strings.Builder
 	b.WriteString("DELETE FROM ")
 	b.WriteString(string(tableName))
@@ -243,7 +243,7 @@ func (s *SDatabase) Delete(tableName Table, clauses SelectClauses) {
 //
 // Returns:
 // - 🚨 error:
-func (s *SDatabase) DeleteDb() error {
+func (s *databaseImpl) DeleteDb() error {
 	if ok, err := ValidateDbAbsPath(s.dbAbsPath); !ok {
 		return err
 	}
@@ -261,9 +261,15 @@ func (s *SDatabase) DeleteDb() error {
 //
 // Returns:
 // - 🚨 error:
-func (s *SDatabase) Apply() (*Queries, error) {
+func (s *databaseImpl) Apply() (*Queries, error) {
 	if !s.IsInitialized() {
 		return nil, fmt.Errorf(ErrorDatabaseNotInitialized)
+	}
+
+	if len(s.queries.CreateTable) == 0 && len(s.queries.Insert) == 0 &&
+		len(s.queries.Update) == 0 && len(s.queries.Delete) == 0 &&
+		len(s.queries.Select) == 0 {
+		return nil, fmt.Errorf("error no queries")
 	}
 
 	// Begin a transaction
@@ -271,15 +277,6 @@ func (s *SDatabase) Apply() (*Queries, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error starting transaction: %w", err)
 	}
-
-	/*
-		for _, q := range s.queries.DropTable {
-			_, err = s.exec(sqlTx, q.Query, q.Values)
-			if err != nil {
-				return err
-			}
-			//allQueries = append(allQueries, q.Query)
-		}*/
 
 	// Execute CREATE TABLE queries directly (no values binding)
 	for _, q := range s.queries.CreateTable {
@@ -339,17 +336,18 @@ func (s *SDatabase) Apply() (*Queries, error) {
 		return nil, fmt.Errorf("error committing transaction: %w", err)
 	}
 
-	// Optionally, clear the queries after applying
-	/*s.queries = &Queries{
+	// Clear the queries after applying and return the executed queries
+	result := s.queries
+	s.queries = &Queries{
 		CreateTable: []Query{},
 		DropTable:   []Query{},
 		Insert:      []Query{},
 		Update:      []Query{},
 		Delete:      []Query{},
 		Select:      []Query{},
-	}*/
+	}
 
-	return s.queries, nil
+	return result, nil
 }
 
 // exec loops through all the queries and executes them.
@@ -362,7 +360,7 @@ func (s *SDatabase) Apply() (*Queries, error) {
 // Returns:
 // -
 // - 🚨 error:
-func (s *SDatabase) exec(sqlTx IDatabaseSqlTx, query string, values []any) (sql.Result, error) {
+func (s *databaseImpl) exec(sqlTx Tx, query string, values []any) (sql.Result, error) {
 	dbResult, err := sqlTx.Exec(query, values...)
 	if err != nil {
 		// Roll back the entire transaction on error
@@ -385,7 +383,7 @@ func (s *SDatabase) exec(sqlTx IDatabaseSqlTx, query string, values []any) (sql.
 // Returns:
 // -
 // - 🚨 error:
-func (s *SDatabase) querySelect(sqlTx IDatabaseSqlTx, query string, values []any) (any, error) {
+func (s *databaseImpl) querySelect(sqlTx Tx, query string, values []any) (any, error) {
 	rows, err := sqlTx.Query(query, values...)
 	if err != nil {
 		return "", fmt.Errorf("error executing SELECT query (%s): %w", query, err)

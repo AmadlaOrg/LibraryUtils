@@ -1,8 +1,8 @@
 package aes_gcm
 
-// NewAesGcmService
-func NewAesGcmService(key string) IAesGcm {
-	return &SAesGcm{
+// New
+func New(key string) AesGcm {
+	return &aesGcmImpl{
 		key: key,
 	}
 }

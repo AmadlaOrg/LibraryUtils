@@ -6,17 +6,23 @@ import (
 	"github.com/dgraph-io/ristretto/v2"
 )
 
-type IRistretto interface{}
+type Ristretto interface {
+	Connect() error
+	Close()
+	Set(key, value string, cost int64)
+	Get(key string) (string, error)
+	Delete(key string) error
+}
 
-type SRistretto struct {
-	ristrettoInstance *ristretto.Cache[K, V]
+type ristrettoImpl struct {
+	ristrettoInstance *ristretto.Cache[string, string]
 }
 
 var (
-	ristrettoNewCache = ristretto.NewCache
+	ristrettoNewCache = ristretto.NewCache[string, string]
 )
 
-func (service *SRistretto) Connect() error {
+func (service *ristrettoImpl) Connect() error {
 	var err error
 	service.ristrettoInstance, err = ristrettoNewCache(&ristretto.Config[string, string]{
 		NumCounters: 1e7,     // number of keys to track frequency of (10M).
@@ -29,25 +35,25 @@ func (service *SRistretto) Connect() error {
 	return nil
 }
 
-func (service *SRistretto) Close() {
+func (service *ristrettoImpl) Close() {
 	service.ristrettoInstance.Close()
 }
 
-func (service *SRistretto) Set(item IRistretto) {
-	service.ristrettoInstance.Set("key", "value", 1)
+func (service *ristrettoImpl) Set(key, value string, cost int64) {
+	service.ristrettoInstance.Set(key, value, cost)
 	service.ristrettoInstance.Wait()
 }
 
-func (service *SRistretto) Get(key string) (IRistretto, error) {
+func (service *ristrettoImpl) Get(key string) (string, error) {
 	val, found := service.ristrettoInstance.Get(key)
 	if !found {
-		return nil, errors.New("key not found")
+		return "", errors.New("key not found")
 	}
 
-	return val
+	return val, nil
 }
 
-func (service *SRistretto) Delete(key string) error {
+func (service *ristrettoImpl) Delete(key string) error {
 	service.ristrettoInstance.Del(key)
 	return nil
 }

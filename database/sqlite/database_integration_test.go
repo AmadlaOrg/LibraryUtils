@@ -13,7 +13,8 @@ import (
 var sqlTables string
 
 func Test_Integration_IsInitialized_is_true(t *testing.T) {
-	databaseService := NewDatabaseService("/tmp/test-integration-IsInitialized-is-true.db")
+	dbPath := filepath.Join(t.TempDir(), "test.db")
+	databaseService := New(dbPath)
 	err := databaseService.Initialize()
 	assert.NoError(t, err)
 
@@ -28,7 +29,8 @@ func Test_Integration_IsInitialized_is_true(t *testing.T) {
 }
 
 func Test_Integration_CreateTable(t *testing.T) {
-	databaseService := NewDatabaseService("/tmp/test-integration-create-table.db")
+	dbPath := filepath.Join(t.TempDir(), "test.db")
+	databaseService := New(dbPath)
 	err := databaseService.Initialize()
 	assert.NoError(t, err)
 
@@ -41,14 +43,13 @@ func Test_Integration_CreateTable(t *testing.T) {
 	err = databaseService.Close()
 	assert.NoError(t, err)
 
-	// TODO: Validate the content
-
 	err = databaseService.DeleteDb()
 	assert.NoError(t, err)
 }
 
 func Test_Integration_Insert(t *testing.T) {
-	databaseService := NewDatabaseService("/tmp/test-integration-insert.db")
+	dbPath := filepath.Join(t.TempDir(), "test.db")
+	databaseService := New(dbPath)
 	err := databaseService.Initialize()
 	assert.NoError(t, err)
 
@@ -58,7 +59,7 @@ func Test_Integration_Insert(t *testing.T) {
 		t.Errorf("Failed to apply database %v", err)
 	}
 
-	rows := []Row{
+	rows := []DataRow{
 		{
 			"txt":  "Some text.",
 			"num":  1091,
@@ -70,7 +71,6 @@ func Test_Integration_Insert(t *testing.T) {
 			"num":  1891,
 			"bool": false,
 			"real": 98.0001,
-			// TODO: add datetime
 		},
 	}
 
@@ -80,29 +80,11 @@ func Test_Integration_Insert(t *testing.T) {
 		t.Errorf("Failed to apply database %v", err)
 	}
 
-	/*databaseService.Select("content", SelectClauses{
-		Where: []Condition{
-			{
-				Column:   "num",
-				Operator: OperatorEqual,
-				Value:    1091,
-			},
-		},
-	}, []JoinClauses{})
-	err = databaseService.Apply()
-	if err != nil {
-		t.Errorf("Failed to apply database %v", err)
-	}*/
-
 	err = databaseService.Close()
 	assert.NoError(t, err)
 
-	//assert.Equal(t, rows, queryResults)
-
-	// TODO: Validate the content
-
-	//err = databaseService.DeleteDb()
-	//assert.NoError(t, err)
+	err = databaseService.DeleteDb()
+	assert.NoError(t, err)
 }
 
 func Test_Integration_Select(t *testing.T) {
@@ -111,7 +93,7 @@ func Test_Integration_Select(t *testing.T) {
 		t.Errorf("Failed to get absolute path: %v", err)
 	}
 
-	databaseService := NewDatabaseService(abs)
+	databaseService := New(abs)
 	err = databaseService.Initialize()
 	assert.NoError(t, err)
 

@@ -3,10 +3,10 @@ Is a set of different services that help with the exchanges of sensitive informa
 
 ## Exchange Methods
 There are many ways to exchange internally in a system but not all are secure. It is an option to print out the
-secrets that `doorman` receives from one of the *clerks* (the name of the plugins for `doorman`). It can be pass
+secrets that `doorman` receives from one of its plugins (e.g., `doorman-vault`, `doorman-aws`). It can be passed
 securely by piping it to another terminal application.
 
-But there might be situations where this option is the least secure one. Also, *clerks* need to be able to exchange with
+But there might be situations where this option is the least secure one. Also, doorman plugins need to be able to exchange with
 `doorman` in a secure way. So for those reasons three methods are available:
 
 - 🪟 [Named Pipes](https://learn.microsoft.com/en-us/windows/win32/ipc/named-pipes) - Only for Windows

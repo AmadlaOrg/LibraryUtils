@@ -7,7 +7,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing"
 )
 
-type IGoGitRemote interface {
+type GoGitRemote interface {
 	Config() *config.RemoteConfig
 	String() string
 	Push(o *git.PushOptions) error

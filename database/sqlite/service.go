@@ -1,8 +1,8 @@
 package sqlite
 
-// NewDatabaseService to set up the entity Cache service
-func NewDatabaseService(dbAbsPath string) IDatabase {
-	return &SDatabase{
+// New to set up the entity Cache service
+func New(dbAbsPath string) Database {
+	return &databaseImpl{
 		dbAbsPath: dbAbsPath,
 		queries: &Queries{
 			CreateTable: []Query{},

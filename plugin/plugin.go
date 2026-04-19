@@ -1,5 +1,5 @@
 package plugin
 
-type IPlugin interface{}
+type Plugin interface{}
 
-type SPlugin struct{}
+type pluginImpl struct{}

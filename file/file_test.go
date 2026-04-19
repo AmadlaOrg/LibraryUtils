@@ -251,7 +251,7 @@ func TestIsValidMagic(t *testing.T) {
 		inputPath           string
 		inputMagic          []byte
 		internalOsStatError error
-		internalOsOpen      func(name string) (IFile, error)
+		internalOsOpen      func(name string) (File, error)
 		internalBytesEqual  func(a, b []byte) bool
 		expect              bool
 		expectedErr         error
@@ -260,7 +260,7 @@ func TestIsValidMagic(t *testing.T) {
 		{
 			name:      "Success",
 			inputPath: `testdata/valid.db`,
-			internalOsOpen: func(name string) (IFile, error) {
+			internalOsOpen: func(name string) (File, error) {
 				mockFile := NewMockFile(t)
 				mockFile.EXPECT().Read(mock.Anything).Return(0, nil)
 				mockFile.EXPECT().Close().Return(nil)
@@ -286,7 +286,7 @@ func TestIsValidMagic(t *testing.T) {
 		{
 			name:      "Error: fails at os.Open",
 			inputPath: `testdata/valid.db`,
-			internalOsOpen: func(name string) (IFile, error) {
+			internalOsOpen: func(name string) (File, error) {
 				mockFile := NewMockFile(t)
 				return mockFile, errors.New("open ./testdata/valid.db: no such file or directory")
 			},
@@ -298,7 +298,7 @@ func TestIsValidMagic(t *testing.T) {
 			name:       "Error: fails at Read file",
 			inputPath:  `testdata/valid.db`,
 			inputMagic: []byte("SQLite"),
-			internalOsOpen: func(name string) (IFile, error) {
+			internalOsOpen: func(name string) (File, error) {
 				mockFile := NewMockFile(t)
 				mockFile.EXPECT().Read(mock.Anything).Return(0, errors.New("some error (file.Read())"))
 				mockFile.EXPECT().Close().Return(nil)
@@ -311,7 +311,7 @@ func TestIsValidMagic(t *testing.T) {
 		{
 			name:      "Error: fails at bytes.Equal",
 			inputPath: `testdata/valid.db`,
-			internalOsOpen: func(name string) (IFile, error) {
+			internalOsOpen: func(name string) (File, error) {
 				mockFile := NewMockFile(t)
 				mockFile.EXPECT().Read(mock.Anything).Return(0, nil)
 				mockFile.EXPECT().Close().Return(nil)
@@ -327,7 +327,7 @@ func TestIsValidMagic(t *testing.T) {
 		{
 			name:      "Error: fails at closing file",
 			inputPath: `testdata/valid.db`,
-			internalOsOpen: func(name string) (IFile, error) {
+			internalOsOpen: func(name string) (File, error) {
 				mockFile := NewMockFile(t)
 				mockFile.EXPECT().Read(mock.Anything).Return(0, nil)
 				mockFile.EXPECT().Close().Return(errors.New("some error (file.Close())"))

@@ -10,14 +10,14 @@ import (
 	"github.com/adrg/xdg"
 )
 
-// ILocation 🧩 Is the interface for the NewLocationService.
-type ILocation interface {
+// Location 🧩 Is the interface for the NewLocationService.
+type Location interface {
 	SystemPaths() *SystemPaths
 	ApplicationPaths() *ApplicationPaths
 }
 
-// SLocation 🏛️ Is the main structure for the NewLocationService.
-type SLocation struct {
+// locationImpl 🏛️ Is the main structure for the NewLocationService.
+type locationImpl struct {
 	appName         AppName
 	appVersion      AppVersion
 	pluginTypeNames PluginTypeNames
@@ -33,17 +33,17 @@ var (
 )
 
 // SystemPaths returns struct of all systems paths
-func (service *SLocation) SystemPaths() *SystemPaths {
+func (service *locationImpl) SystemPaths() *SystemPaths {
 	return service.paths.SystemPaths
 }
 
 // ApplicationPaths returns the struct of all the main application paths
-func (service *SLocation) ApplicationPaths() *ApplicationPaths {
+func (service *locationImpl) ApplicationPaths() *ApplicationPaths {
 	return service.paths.ApplicationPaths
 }
 
 // setAllPaths calls on all the private methods to set in the struct all the absolute paths.
-func (service *SLocation) setAllPaths() error {
+func (service *locationImpl) setAllPaths() error {
 	relFilePath := fmt.Sprintf("%s/%s", service.appName, service.appName)
 
 	err := service.setSystemPaths()
@@ -87,7 +87,7 @@ func (service *SLocation) setAllPaths() error {
 }
 
 // setSystemPaths sets the system paths.
-func (service *SLocation) setSystemPaths() error {
+func (service *locationImpl) setSystemPaths() error {
 	sysPaths := &SystemPaths{
 		Home:            xdg.Home,
 		DataHome:        xdg.DataHome,
@@ -133,7 +133,7 @@ func (service *SLocation) setSystemPaths() error {
 }
 
 // setDataPaths sets the application specific data directory path.
-func (service *SLocation) setDataPaths() error {
+func (service *locationImpl) setDataPaths() error {
 	dataDir, err := xdgDataFile(string(service.appName))
 	if err != nil {
 		return errors.Join(fmt.Errorf(`xdg.DataFile was unable to set "%s" path`, dataDir), err)
@@ -144,7 +144,7 @@ func (service *SLocation) setDataPaths() error {
 }
 
 // setConfigPaths sets the application config directory and file YAML absolute paths.
-func (service *SLocation) setConfigPaths(relFilePath string) error {
+func (service *locationImpl) setConfigPaths(relFilePath string) error {
 	configFile, err := xdgConfigFile(relFilePath + ".yaml")
 	if err != nil {
 		return errors.Join(fmt.Errorf(`xdg.ConfigFile was unable to set "%s" path`, configFile), err)
@@ -156,7 +156,7 @@ func (service *SLocation) setConfigPaths(relFilePath string) error {
 }
 
 // setStatePaths sets the absolute path to the state directory.
-func (service *SLocation) setStatePaths() error {
+func (service *locationImpl) setStatePaths() error {
 	stateDir, err := xdg.StateFile(string(service.appName))
 	if err != nil {
 		return errors.Join(fmt.Errorf(`xdg.StateFile was unable to set "%s" path`, stateDir), err)
@@ -167,7 +167,7 @@ func (service *SLocation) setStatePaths() error {
 }
 
 // setCachePaths sets the to the cache directory and file absolute paths.
-func (service *SLocation) setCachePaths(relFilePath string) error {
+func (service *locationImpl) setCachePaths(relFilePath string) error {
 	cacheFilePath, err := xdgCacheFile(relFilePath + ".cache")
 	if err != nil {
 		return errors.Join(fmt.Errorf(`xdg.CacheFile was unable to set "%s" path`, cacheFilePath), err)
@@ -180,12 +180,12 @@ func (service *SLocation) setCachePaths(relFilePath string) error {
 
 // setBinPath sets the absolute bin path.
 // The bin is the application main binary.
-func (service *SLocation) setBinPath() {
+func (service *locationImpl) setBinPath() {
 	service.paths.ApplicationPaths.BinFile = fmt.Sprintf("%s/%s", xdg.BinHome, service.appName)
 }
 
 // setPluginPaths sets the path or paths to the plugin directory.
-func (service *SLocation) setPluginPaths() error {
+func (service *locationImpl) setPluginPaths() error {
 	pluginDirs := make(map[string]string)
 	for _, pluginTypeName := range service.pluginTypeNames {
 		pluginDirs[pluginTypeName] = fmt.Sprintf("%s/%s.d", xdg.DataHome, pluginTypeName)
@@ -196,7 +196,7 @@ func (service *SLocation) setPluginPaths() error {
 }
 
 // setSecretPaths sets the secret absolute paths.
-func (service *SLocation) setSecretPaths() error {
+func (service *locationImpl) setSecretPaths() error {
 	secretsRelPath := fmt.Sprintf("%s/secrets", service.appName)
 
 	tmpSecrets, err := xdgRuntimeFile(secretsRelPath)

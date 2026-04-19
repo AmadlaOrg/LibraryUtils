@@ -1,10 +1,13 @@
+//go:build windows
+
 package named_pipe
 
 import (
 	"fmt"
-	"github.com/Microsoft/go-winio"
 	"net"
 	"os"
+
+	"github.com/Microsoft/go-winio"
 )
 
 func Connect() {
@@ -15,7 +18,7 @@ func Connect() {
 	}
 	defer listener.Close()
 
-	fmt.Println("Clerk-AWS listening on", pipeName)
+	fmt.Println("doorman-aws listening on", pipeName)
 
 	for {
 		conn, err := listener.Accept()

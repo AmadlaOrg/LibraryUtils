@@ -2,9 +2,9 @@ package stream
 
 import "io"
 
-// NewStreamService
-func NewStreamService(tmplFile string, input io.Reader, output io.Writer) IStream {
-	return &SStream{
+// New
+func New(tmplFile string, input io.Reader, output io.Writer) Stream {
+	return &streamImpl{
 		tmplFile: tmplFile,
 		input:    input,
 		output:   output,

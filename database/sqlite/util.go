@@ -17,22 +17,6 @@ func ValidateDbAbsPath(path string) (bool, error) {
 	return fileIsValidMagic(path, []byte("SQLite"))
 }
 
-// TODO: Is it even needed?
-// mergeSqlQueries takes an array of SQL query strings and merges them together
-/*func mergeSqlQueries(sqlQueries *[]string) string {
-	return strings.Replace(strings.Join(*sqlQueries, ";\n")+";", ";;", ";", -1)
-}*/
-
-// ToSQL for Column
-/*func (col Column) ToSQL() string {
-	var constraints []string
-	for _, constraint := range col.Constraints {
-		constraints = append(constraints, constraint.ToSQL())
-	}
-
-	return fmt.Sprintf("%s %s %s", col.ColumnName, col.DataType, strings.Join(constraints, " "))
-}*/
-
 // ToSQL for Constraint
 func (c Constraint) ToSQL() string {
 	switch c.Type {

@@ -7,8 +7,8 @@ import (
 	"log"
 )
 
-type IDBus interface{}
-type SDBus struct{}
+type DBus interface{}
+type dbusImpl struct{}
 
 const secretKey = "32byte-long-secret-key!!!!!" // Ensure key is 32 bytes
 
@@ -18,10 +18,11 @@ func getJWTToken() (string, *dbus.Error) {
 	jwtToken := "JWT_TOKEN_123456"
 
 	// Encrypt the token before sending
-	encryptedToken, err := aes_gcm.Encrypt(jwtToken, secretKey)
+	encryptionService := aes_gcm.New(secretKey)
+	encryptedToken, err := encryptionService.Encrypt(jwtToken)
 	if err != nil {
 		log.Println("Encryption error:", err)
-		return "", dbus.NewError("com.clerk.aws.EncryptionError", []interface{}{"Encryption failed"})
+		return "", dbus.NewError("com.doorman.aws.EncryptionError", []interface{}{"Encryption failed"})
 	}
 
 	return encryptedToken, nil
@@ -34,7 +35,7 @@ func Connect() {
 	}
 
 	// Register D-Bus service
-	replyObj, err := conn.RequestName("com.clerk.aws", dbus.NameFlagDoNotQueue)
+	replyObj, err := conn.RequestName("com.doorman.aws", dbus.NameFlagDoNotQueue)
 	if err != nil {
 		log.Fatal("Failed to query D-Bus:", err)
 	}
@@ -43,11 +44,11 @@ func Connect() {
 	}
 
 	// Register object & method
-	obj := conn.Export(getJWTToken, "/com/clerk/aws", "com.clerk.aws")
+	obj := conn.Export(getJWTToken, "/com/doorman/aws", "com.doorman.aws")
 	if obj != nil {
 		log.Fatal("Failed to export method:", obj)
 	}
 
-	fmt.Println("Clerk-AWS running on D-Bus...")
+	fmt.Println("doorman-aws running on D-Bus...")
 	select {} // Keep running
 }

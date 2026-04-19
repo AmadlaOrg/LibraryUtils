@@ -1,8 +1,12 @@
 package cache
 
-import "time"
+import (
+	"time"
 
-type ICache interface {
+	"github.com/AmadlaOrg/LibraryUtils/database/sqlite"
+)
+
+type Cache interface {
 	Open() error
 	Close() error
 	Insert(entry *map[string]string, ttl time.Duration) error
@@ -10,11 +14,11 @@ type ICache interface {
 	Delete(entry string) error
 }
 
-type SCache struct {
-	database database.IDatabase
+type cacheImpl struct {
+	database sqlite.Database
 }
 
 // Open is for opening a connection with the cache storage (e.g.: SQLite3 database, Ristretto memory-bound Go cache)
-func (service *SCache) Open() error {
-
+func (service *cacheImpl) Open() error {
+	return nil
 }

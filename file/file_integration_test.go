@@ -83,7 +83,7 @@ func Test_integration_Exists(t *testing.T) {
 
 func Test_integration_IsValidMagic(t *testing.T) {
 	t.Run("should return true", func(t *testing.T) {
-		filePath, err := filepath.Abs("../test/fixture/db/VACUUM.cache")
+		filePath, err := filepath.Abs("../testdata/db/VACUUM.cache")
 		if err != nil {
 			t.Error(err)
 		}
@@ -96,7 +96,7 @@ func Test_integration_IsValidMagic(t *testing.T) {
 	})
 
 	t.Run("should return false", func(t *testing.T) {
-		filePath, err := filepath.Abs("../test/fixture/db/NotSqliteFile.txt")
+		filePath, err := filepath.Abs("../testdata/db/NotSqliteFile.txt")
 		if err != nil {
 			t.Error(err)
 		}
@@ -107,7 +107,7 @@ func Test_integration_IsValidMagic(t *testing.T) {
 	})
 
 	t.Run("should return false even if the header string is the same as the one in the magic", func(t *testing.T) {
-		filePath, err := filepath.Abs("../test/fixture/db/NotSqliteFile_with_SQLite_txt.txt")
+		filePath, err := filepath.Abs("../testdata/db/NotSqliteFile_with_SQLite_txt.txt")
 		if err != nil {
 			t.Error(err)
 		}

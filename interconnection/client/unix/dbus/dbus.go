@@ -6,28 +6,28 @@ import (
 	"github.com/godbus/dbus/v5"
 )
 
-type IDBus interface{}
+type DBus interface{}
 
-type SDBus struct {
-	encryptionAesGcmService aes_gcm.IAesGcm
+type dbusImpl struct {
+	encryptionAesGcmService aes_gcm.AesGcm
 }
 
-const secretKey = "32byte-long-secret-key!!!!!" // Ensure key matches Clerk-AWS
+const secretKey = "32byte-long-secret-key!!!!!" // Ensure key matches doorman-aws
 
 // Connect
-func (s *SDBus) Connect() error {
+func (s *dbusImpl) Connect() error {
 	conn, err := dbus.SessionBus()
 	if err != nil {
 		return fmt.Errorf("failed to connect to D-Bus: %v", err)
 	}
 
-	obj := conn.Object("com.clerk.aws", "/com/clerk/aws")
+	obj := conn.Object("com.doorman.aws", "/com/doorman/aws")
 	var encryptedJWT string
 
 	// Call GetJWT method
-	err = obj.Call("com.clerk.aws.GetJWT", 0).Store(&encryptedJWT)
+	err = obj.Call("com.doorman.aws.GetJWT", 0).Store(&encryptedJWT)
 	if err != nil {
-		return fmt.Errorf("error calling Clerk-AWS: %v", err)
+		return fmt.Errorf("error calling doorman-aws: %v", err)
 	}
 
 	// Decrypt received JWT

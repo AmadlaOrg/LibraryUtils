@@ -7,7 +7,7 @@ import (
 )
 
 func Test_integration_ValidateDbAbsPath(t *testing.T) {
-	abs, err := filepath.Abs("../../test/fixture/db/VACUUM.cache")
+	abs, err := filepath.Abs("../../testdata/db/VACUUM.cache")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -21,7 +21,7 @@ func Test_integration_ValidateDbAbsPath(t *testing.T) {
 }
 
 func Test_integration_Error_ValidateDbAbsPath_fake_path(t *testing.T) {
-	abs, err := filepath.Abs("../../test/fixture/db/none_existing_file.cache")
+	abs, err := filepath.Abs("../../testdata/db/none_existing_file.cache")
 	if err != nil {
 		t.Fatal(err)
 	}
